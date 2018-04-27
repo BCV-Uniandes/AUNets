@@ -1,0 +1,9 @@
+snapshot/
+data/
+*.pyc
+caffe/
+pretrained/
+*senet.py
+broxDir
+cafferesults/
+
