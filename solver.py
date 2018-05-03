@@ -33,6 +33,7 @@ class Solver(object):
     self.of_loader_val=None
     self.OF=config.OF
     self.OF_option = config.OF_option
+    self.HYDRA = config.HYDRA
 
     self.image_size = config.image_size
     self.lr = config.lr
@@ -66,9 +67,17 @@ class Solver(object):
     #MISC
     self.GPU = config.GPU
     self.AU = config.AU
+    self.SHOW_MODEL = config.SHOW_MODEL
+
+    self.DONE=False
+    if self.pretrained_model and not self.SHOW_MODEL:
+      if os.path.isfile(os.path.join(self.model_save_path, '{}_00.txt'.format(self.pretrained_model))):
+        print("!!!Model already trained")
+        self.DONE=True
 
     # Build tensorboard if use
     self.build_model()
+    if self.SHOW_MODEL: return
     if self.use_tensorboard:
       self.build_tensorboard()
 
@@ -80,17 +89,25 @@ class Solver(object):
   #=======================================================================================#
   def build_model(self):
     # Define a generator and a discriminator
-
+    if self.DONE: return
     from models.vgg16 import Classifier
     self.C = Classifier(pretrained=self.finetuning, OF_option=self.OF_option) 
 
+    if self.HYDRA: 
+      trainable_params = self.C.model.classifier.parameters()
+    else:
+      trainable_params = self.C.parameters()
+      # ipdb.set_trace()
+      # self.freeze_layers(self.C)
+
     # Optimizer
-    self.optimizer = torch.optim.Adam(self.C.parameters(), self.lr, [self.beta1, self.beta2])
+    # self.optimizer = torch.optim.Adam(self.C.parameters(), self.lr, [self.beta1, self.beta2])
+    self.optimizer = torch.optim.Adam(trainable_params, self.lr, [self.beta1, self.beta2])
 
     # Loss
     self.LOSS = nn.BCEWithLogitsLoss()
     # Print network
-    self.print_network(self.C, 'Classifier')
+    self.print_network(self.C, 'Classifier - OF: '+self.OF_option)
     
     if torch.cuda.is_available():
       self.C.cuda()
@@ -101,13 +118,15 @@ class Solver(object):
     num_params = 0
     for p in model.parameters():
       num_params += p.numel()
-    # print(name)
-    # print(model)
+    if self.SHOW_MODEL: 
+      print(name)
+      print(model)
     print("The number of parameters: {}".format(num_params))
 
   #=======================================================================================#
   #=======================================================================================#
   def load_pretrained_model(self):
+    if self.DONE: return
     model = os.path.join(
       self.model_save_path, '{}.pth'.format(self.pretrained_model))
     self.C.load_state_dict(torch.load(model))
@@ -139,6 +158,12 @@ class Solver(object):
 
   #=======================================================================================#
   #=======================================================================================#
+  def denorm(self, x):
+    out = (x + 1) / 2
+    return out.clamp_(0, 1)
+
+  #=======================================================================================#
+  #=======================================================================================#
   def threshold(self, x):
     x = x.clone()
     x = (x >= 0.5).float()
@@ -153,6 +178,7 @@ class Solver(object):
 
     # The number of iterations per epoch
     # ipdb.set_trace()
+    if self.DONE: return
     iters_per_epoch = len(self.rgb_loader)
 
     # lr cache for decaying
@@ -186,6 +212,7 @@ class Solver(object):
     loss_val_prev = 90
     f1_val_prev = 0
     non_decreasing = 0
+
     # Start training
     start_time = time.time()
 
@@ -338,8 +365,9 @@ class Solver(object):
     self.pkl_data = os.path.join(self.model_save_path, '{}_{}.pkl'.format(last_name, '{}'))
     print(" [!!] {} model loaded...".format(D_path))
     # self.G.load_state_dict(torch.load(G_path))
-    self.C.load_state_dict(torch.load(D_path))
-    self.C.eval()
+    if not self.DONE: 
+      self.C.load_state_dict(torch.load(D_path))
+      self.C.eval()
     # ipdb.set_trace()
     data_loader_val = get_loader(self.metadata_path, self.image_size,
                    self.image_size, self.batch_size, 'val')

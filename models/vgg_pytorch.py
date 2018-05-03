@@ -221,7 +221,7 @@ class VGG_CONV(nn.Module):
       nn.ReLU(True),
       nn.Dropout(),
       nn.Linear(4096, num_classes),
-    )    
+    )
     self._initialize_weights()
 
   def forward(self, x, OF=None):

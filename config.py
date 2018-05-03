@@ -46,13 +46,11 @@ def update_config(config):
   folder_parameters = os.path.join(config.dataset, config.mode_data, 'fold_'+config.fold, 'AU'+str(config.AU).zfill(2))
   update_folder(config, folder_parameters)
   config.metadata_path = os.path.join(config.metadata_path, folder_parameters)
-
+  if config.HYDRA: update_folder(config, 'HYDRA')
   update_folder(config, 'OF_'+config.OF_option)
   update_folder(config, config.finetuning)
   
   config.xlsfile = os.path.join(config.results_path, config.mode_data, config.finetuning+'.xlsx')
-
-  if config.OF_option=='None': config.batch_size=118
 
   if config.pretrained_model=='':
     try:

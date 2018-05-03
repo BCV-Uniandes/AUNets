@@ -64,7 +64,7 @@ def whereAU(au):
   return np.where(np.array(cfg.AUs)==au)[0][0]
 
 def createxls(config,mode):
-  sheet = 'OF_'+config.OF_option
+  sheet = 'OF_'+config.OF_option if not config.HYDRA else 'Hydra/OF_'+config.OF_option
   # ipdb.set_trace()
   try:
     wb = openpyxl.load_workbook(config.xlsfile.replace('.xlsx','_'+mode+'.xlsx'))
@@ -314,8 +314,8 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
     print(string)
     print >>config.f, string
     workbook.save(config.xlsfile.replace('.xlsx','_'+mode+'.xlsx'))
-
   if mode=='VAL':
     return F1_real, F1_MAX, F1_Thresh_max, np.array(loss).mean(), F1_1
   else:
+    if verbose: print('================================')
     return F1_real, F1_MAX, F1_Thresh_max  

@@ -27,7 +27,11 @@ case $key in
     -finetuning|--finetuning)
     declare -a finetuning=( "$2" )
     shift # past argument
-    ;;       
+    ;;    
+    -HYDRA|--HYDRA)
+    HYDRA=true
+    shift # past argument
+    ;;           
     *)
 esac
 shift # past argument or value
@@ -38,6 +42,8 @@ if [ -z ${mode_data+x} ]; then mode_data="normal"; fi
 if [ -z ${AU+x} ]; then declare -a AU=(1 2 4 6 7 10 12 14 15 17 23 24); fi
 if [ -z ${finetuning+x} ]; then declare -a finetuning=("emotionnet"); fi
 if [ -z ${fold+x} ]; then declare -a fold=( 0 1 2 ); fi
+if [ -z ${HYDRA+x} ]; then HYDRA=false; fi
+
 
 if [ $OF = "None" ] || [ $OF = "Alone" ]; then 
   batch_size=118 
@@ -65,8 +71,10 @@ do
     do
       command_train="./main.py -- --batch_size=$batch_size --AU=$au --GPU=$gpu_id \
                     --finetuning=$enc --mode_data=$mode_data --fold=$_fold --OF $OF"
+      if [ "$HYDRA" = true ]; then command_train+=" --HYDRA"; fi                      
       echo $command_train
       eval $command_train
+      echo ""
     done
   done
 done
