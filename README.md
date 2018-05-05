@@ -3,5 +3,5 @@
 ## Arqs
 ![](misc/arqs.png)
 
-## Network
+## Network (VGG - Fig (a))
 ![](misc/network.png)
