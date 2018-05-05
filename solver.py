@@ -87,6 +87,22 @@ class Solver(object):
 
   #=======================================================================================#
   #=======================================================================================#
+  def display_net(self):
+    #pip install git+https://github.com/szagoruyko/pytorchviz
+    from graphviz import Digraph
+    from torchviz import make_dot, make_dot_from_trace
+    from utils import pdf2png
+    y = self.C(self.to_var(torch.randn(1,3,224,224)))
+    g=make_dot(y, params=dict(self.C.named_parameters()))
+    filename='network'
+    g.filename=filename
+    g.render()
+    os.remove(filename)
+    pdf2png(filename)
+    print('Network saved at {}.png'.format(filename))
+
+  #=======================================================================================#
+  #=======================================================================================#
   def build_model(self):
     # Define a generator and a discriminator
     if self.DONE: return

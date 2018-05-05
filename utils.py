@@ -319,3 +319,13 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
   else:
     if verbose: print('================================')
     return F1_real, F1_MAX, F1_Thresh_max  
+
+
+def pdf2png(filename):
+  from wand.image import Image
+  from wand.color import Color
+  with Image(filename="{}.pdf".format(filename), resolution=500) as img:
+    with Image(width=img.width, height=img.height, background=Color("white")) as bg:
+      bg.composite(img,0,0)
+      bg.save(filename="{}.png".format(filename))
+  os.remove('{}.pdf'.format(filename))

@@ -69,8 +69,8 @@ do
   do
     for au in "${AU[@]}"
     do
-      command_train="./main.py -- --batch_size=$batch_size --AU=$au --GPU=$gpu_id \
-                    --finetuning=$enc --mode_data=$mode_data --fold=$_fold --OF $OF"
+      command_train="./main.py -- --AU=$au --fold=$_fold --GPU=$gpu_id --OF $OF \
+                    --batch_size=$batch_size --finetuning=$enc --mode_data=$mode_data"
       if [ "$HYDRA" = true ]; then command_train+=" --HYDRA"; fi                      
       echo $command_train
       eval $command_train

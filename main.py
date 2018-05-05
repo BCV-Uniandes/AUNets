@@ -42,6 +42,10 @@ def main(config):
   from solver import Solver   
   solver = Solver(rgb_loader, config, of_loader=of_loader)
 
+  if config.DISPLAY_NET: 
+    solver.display_net()
+    return
+
   if config.SHOW_MODEL: return
 
   if config.mode == 'train':
@@ -79,6 +83,7 @@ if __name__ == '__main__':
   parser.add_argument('--mode', type=str, default='train', choices=['train', 'test'])
   parser.add_argument('--use_tensorboard', action='store_true', default=False)
   parser.add_argument('--SHOW_MODEL', action='store_true', default=False)
+  parser.add_argument('--DISPLAY_NET', action='store_true', default=False) 
   parser.add_argument('--GPU', type=str, default='3')
 
   # Path
