@@ -31,7 +31,11 @@ case $key in
     -HYDRA|--HYDRA)
     HYDRA=true
     shift # past argument
-    ;;           
+    ;;  
+    -DELETE|--DELETE)
+    DELETE=true
+    shift # past argument
+    ;;               
     *)
 esac
 shift # past argument or value
@@ -43,6 +47,7 @@ if [ -z ${AU+x} ]; then declare -a AU=(1 2 4 6 7 10 12 14 15 17 23 24); fi
 if [ -z ${finetuning+x} ]; then declare -a finetuning=("emotionnet"); fi
 if [ -z ${fold+x} ]; then declare -a fold=( 0 1 2 ); fi
 if [ -z ${HYDRA+x} ]; then HYDRA=false; fi
+if [ -z ${DELETE+x} ]; then DELETE=false; fi
 
 
 if [ $OF = "None" ] || [ $OF = "Alone" ]; then 
@@ -53,7 +58,7 @@ else
   if [ $OF = "Channels" ]; then 
     batch_size=118
   elif [ $OF = "Conv" ]; then 
-    batch_size=48 
+    batch_size=34 
   else
     if [ $OF = "FC6" ]; then
       batch_size=42
@@ -71,7 +76,8 @@ do
     do
       command_train="./main.py -- --AU=$au --fold=$_fold --GPU=$gpu_id --OF $OF \
                     --batch_size=$batch_size --finetuning=$enc --mode_data=$mode_data"
-      if [ "$HYDRA" = true ]; then command_train+=" --HYDRA"; fi                      
+      if [ "$HYDRA" = true ]; then command_train+=" --HYDRA"; fi  
+      if [ "$DELETE" = true ]; then command_train+=" --DELETE"; fi                      
       echo $command_train
       eval $command_train
       echo ""

@@ -64,7 +64,7 @@ def whereAU(au):
   return np.where(np.array(cfg.AUs)==au)[0][0]
 
 def createxls(config,mode):
-  sheet = 'OF_'+config.OF_option if not config.HYDRA else 'Hydra/OF_'+config.OF_option
+  sheet = 'OF_'+config.OF_option if not config.HYDRA else 'Hydra_OF_'+config.OF_option
   # ipdb.set_trace()
   try:
     wb = openpyxl.load_workbook(config.xlsfile.replace('.xlsx','_'+mode+'.xlsx'))

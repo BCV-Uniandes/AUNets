@@ -4,6 +4,7 @@ import math
 import torch
 import ipdb
 import numpy as np
+import os
 import glob
 from torch.autograd import Variable
 """
@@ -47,6 +48,31 @@ model_urls = {
   'vgg13_bn': 'https://download.pytorch.org/models/vgg13_bn-abd245e5.pth',
   'vgg16_bn': 'https://download.pytorch.org/models/vgg16_bn-6c64b313.pth',
   'vgg19_bn': 'https://download.pytorch.org/models/vgg19_bn-c79401a0.pth',
+}
+
+#====================================================================================================#
+#====================================================================================================#
+#====================================================================================================#
+def make_layers(cfg, in_channels=3, batch_norm=False):
+  layers = []
+  for v in cfg:
+    if v == 'M':
+      layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+    else:
+      conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+      if batch_norm:
+        layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+      else:
+        layers += [conv2d, nn.ReLU(inplace=True)]
+      in_channels = v
+  return nn.Sequential(*layers)
+
+
+cfg = {
+  'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+  'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+  'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+  'E': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
 }
 
 #====================================================================================================#
@@ -208,11 +234,11 @@ class VGG_CHANNELS(nn.Module):
 #====================================================================================================#
 class VGG_CONV(nn.Module):
 
-  def __init__(self, features, num_classes=2):
+  def __init__(self, features_rgb, features_of, num_classes=2):
     #img = torch.from_numpy(np.zeros((4,3,224,224), dtype=np.float32))
     super(VGG_CONV, self).__init__()
-    self.features_rgb = features
-    self.features_of = features
+    self.features_rgb = features_rgb
+    self.features_of = features_of
     self.classifier = nn.Sequential(
       nn.Linear(1024 * 7 * 7, 4096),
       nn.ReLU(True),
@@ -251,10 +277,10 @@ class VGG_CONV(nn.Module):
 #====================================================================================================#
 class VGG_FC6(nn.Module):
 
-  def __init__(self, features, num_classes=2):
+  def __init__(self, features_rgb, features_of, num_classes=2):
     super(VGG_FC6, self).__init__()
-    self.features_rgb = features
-    self.features_of = features
+    self.features_rgb = features_rgb
+    self.features_of = features_of
     self.classifier_rgb = nn.Sequential(
       nn.Linear(512 * 7 * 7, 4096),
       nn.ReLU(True),
@@ -303,10 +329,10 @@ class VGG_FC6(nn.Module):
 #====================================================================================================#
 class VGG_FC7(nn.Module):
 
-  def __init__(self, features, num_classes=2):
+  def __init__(self, features_rgb, features_of, num_classes=2):
     super(VGG_FC7, self).__init__()
-    self.features_rgb = features
-    self.features_of = features
+    self.features_rgb = features_rgb
+    self.features_of = features_of
     self.classifier_rgb = nn.Sequential(
       nn.Linear(512 * 7 * 7, 4096),
       nn.ReLU(True),
@@ -359,34 +385,9 @@ class VGG_FC7(nn.Module):
 #====================================================================================================#
 #====================================================================================================#
 #====================================================================================================#
-def make_layers(cfg, in_channels=3, batch_norm=False):
-  layers = []
-  for v in cfg:
-    if v == 'M':
-      layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
-    else:
-      conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
-      if batch_norm:
-        layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
-      else:
-        layers += [conv2d, nn.ReLU(inplace=True)]
-      in_channels = v
-  return nn.Sequential(*layers)
-
-
-cfg = {
-  'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-  'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-  'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
-  'E': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
-}
-
-#====================================================================================================#
-#====================================================================================================#
-#====================================================================================================#
 #====================================================================================================#
 
-def vgg16(pretrained='', OF_option='None', **kwargs):
+def vgg16(pretrained='', OF_option='None', model_save_path='', **kwargs):
   """VGG 16-layer model (configuration "D")
   Args:
     pretrained (bool): If True, returns a model pre-trained on ImageNet
@@ -398,11 +399,18 @@ def vgg16(pretrained='', OF_option='None', **kwargs):
     model_zoo_ = model_zoo.load_url(model_urls['vgg16'])
     sheet={k.encode("utf-8"): v for k,v in model_zoo_.iteritems()}
 
-  elif pretrained=='emotionnet':
+  elif pretrained=='emotionnet' and OF_option=='None':
     emo_file = sorted(glob.glob('/home/afromero/datos2/EmoNet/snapshot/models/EmotionNet/normal/fold_all/Imagenet/*.pth'))[-1]
     model_zoo_ = torch.load(emo_file)
     print("Finetuning from: "+emo_file)
     model_zoo_={k.replace('model.',''): v for k,v in model_zoo_.iteritems()}
+
+  elif pretrained=='emotionnet' and OF_option!='None':
+    au_rgb_file = sorted(glob.glob(model_save_path.replace(OF_option,'None')+'/*.pth'))[-1]
+    model_zoo_ = torch.load(au_rgb_file)
+    print("Finetuning from: "+os.path.abspath(au_rgb_file))
+    model_zoo_={k.replace('model.',''): v for k,v in model_zoo_.iteritems()}
+
 
   #====================================================================================================#
   #====================================================================================================#
@@ -435,7 +443,7 @@ def vgg16(pretrained='', OF_option='None', **kwargs):
 
   #====================================================================================================#
   elif OF_option=='Conv':
-    model = VGG_CONV(make_layers(cfg['D']), **kwargs)
+    model = VGG_CONV(make_layers(cfg['D']), make_layers(cfg['D']), **kwargs)
     if pretrained:
       model_zoo_2 = {}
       model_zoo_2['classifier.0.weight'] = model_zoo_['classifier.0.weight'].repeat(1,2)
@@ -446,11 +454,11 @@ def vgg16(pretrained='', OF_option='None', **kwargs):
       fc_params = {k: v for k,v in model_zoo_.iteritems() if 'classifier' in k and not 'classifier.0.weight' in k}
       model_zoo_2.update(fc_params)
       model.load_state_dict(model_zoo_2) 
-      # ipdb.set_trace()
+    # ipdb.set_trace()
 
   #====================================================================================================#
   elif OF_option=='FC6':
-    model = VGG_FC6(make_layers(cfg['D']), **kwargs)
+    model = VGG_FC6(make_layers(cfg['D']), make_layers(cfg['D']), **kwargs)
     if pretrained:
       model_zoo_2 = {}
   
@@ -470,11 +478,11 @@ def vgg16(pretrained='', OF_option='None', **kwargs):
       model_zoo_2['classifier.3.weight'] = model_zoo_['classifier.6.weight']
       model_zoo_2['classifier.3.bias'] = model_zoo_['classifier.6.bias']
       model.load_state_dict(model_zoo_2) 
-      # ipdb.set_trace()
+    # ipdb.set_trace()
 
   #====================================================================================================#
   elif OF_option=='FC7':
-    model = VGG_FC7(make_layers(cfg['D']), **kwargs)   
+    model = VGG_FC7(make_layers(cfg['D']), make_layers(cfg['D']), **kwargs)   
     if pretrained:
       model_zoo_2 = {}
       conv_rgb_params = {k.replace('features', 'features_rgb'): v for k,v in model_zoo_.iteritems() if 'features' in k}

@@ -92,9 +92,13 @@ class Solver(object):
     from graphviz import Digraph
     from torchviz import make_dot, make_dot_from_trace
     from utils import pdf2png
-    y = self.C(self.to_var(torch.randn(1,3,224,224)))
+    input_ = self.to_var(torch.randn(1,3,224,224))
+    if self.OF_option!='None':
+      y = self.C(input_, input_)
+    else:
+      y = self.C(input_)
     g=make_dot(y, params=dict(self.C.named_parameters()))
-    filename='network'
+    filename='misc/VGG16-OF_{}'.format(self.OF_option)
     g.filename=filename
     g.render()
     os.remove(filename)
@@ -107,15 +111,21 @@ class Solver(object):
     # Define a generator and a discriminator
     if self.DONE: return
     from models.vgg16 import Classifier
-    self.C = Classifier(pretrained=self.finetuning, OF_option=self.OF_option) 
+    self.C = Classifier(pretrained=self.finetuning, OF_option=self.OF_option, model_save_path=self.model_save_path) 
+
+    trainable_params = self.C.parameters()
+    name_params = sorted([name for name,param in nn.Module.named_parameters(self.C)], reverse=True)
+
+    if self.OF_option!='None':
+      trainable_params = [param for name,param in nn.Module.named_parameters(self.C) if 'rgb' not in name]
+      name_params = sorted([name for name,param in nn.Module.named_parameters(self.C) if 'rgb' not in name], reverse=True)
 
     if self.HYDRA: 
       trainable_params = self.C.model.classifier.parameters()
-    else:
-      trainable_params = self.C.parameters()
-      # ipdb.set_trace()
-      # self.freeze_layers(self.C)
+      name_params = sorted([name for name,param in nn.Module.named_parameters(self.C) if 'features' not in name], reverse=True)
 
+    # ipdb.set_trace()
+    print("==============\nTrainable layers:\n{}\n==============".format(str(name_params)))
     # Optimizer
     # self.optimizer = torch.optim.Adam(self.C.parameters(), self.lr, [self.beta1, self.beta2])
     self.optimizer = torch.optim.Adam(trainable_params, self.lr, [self.beta1, self.beta2])
@@ -137,7 +147,7 @@ class Solver(object):
     if self.SHOW_MODEL: 
       print(name)
       print(model)
-    print("The number of parameters: {}".format(num_params))
+    print("The number of parameters (OF: {}): {}".format(self.OF_option, num_params))
 
   #=======================================================================================#
   #=======================================================================================#
@@ -304,6 +314,7 @@ class Solver(object):
       # if loss_val<loss_val_prev:
       if f1_val>f1_val_prev:
         torch.save(self.C.state_dict(), os.path.join(self.model_save_path, '{}_{}.pth'.format(E, i+1)))   
+        os.system('rm {}'.format(os.path.join(self.model_save_path, '{}_{}.pth'.format(E-1, i+1))))
         # loss_val_prev = loss_val
         print("! Saving model")
         f1_val_prev = f1_val

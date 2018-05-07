@@ -42,11 +42,9 @@ def main(config):
   from solver import Solver   
   solver = Solver(rgb_loader, config, of_loader=of_loader)
 
-  if config.DISPLAY_NET: 
+  if config.SHOW_MODEL: 
     solver.display_net()
     return
-
-  if config.SHOW_MODEL: return
 
   if config.mode == 'train':
     solver.train()
@@ -71,6 +69,7 @@ if __name__ == '__main__':
   parser.add_argument('--beta2', type=float, default=0.999)
   parser.add_argument('--num_workers', type=int, default=4) 
   parser.add_argument('--HYDRA', action='store_true', default=False)
+  parser.add_argument('--DELETE', action='store_true', default=False)
 
   # Optical Flow
   parser.add_argument('--OF', type=str, default='None', \
@@ -83,7 +82,6 @@ if __name__ == '__main__':
   parser.add_argument('--mode', type=str, default='train', choices=['train', 'test'])
   parser.add_argument('--use_tensorboard', action='store_true', default=False)
   parser.add_argument('--SHOW_MODEL', action='store_true', default=False)
-  parser.add_argument('--DISPLAY_NET', action='store_true', default=False) 
   parser.add_argument('--GPU', type=str, default='3')
 
   # Path
@@ -95,7 +93,7 @@ if __name__ == '__main__':
   parser.add_argument('--mode_data', type=str, default='normal', choices=['normal', 'aligned'])  
 
   parser.add_argument('--AU', type=str, default='')
-  parser.add_argument('--finetuning', type=str, default='emotionnet', choices=['emotionnet', 'imagenet'])  
+  parser.add_argument('--finetuning', type=str, default='emotionnet', choices=['emotionnet', 'imagenet', 'random'])  
   parser.add_argument('--pretrained_model', type=str, default='')   
 
   # Step size

@@ -26,13 +26,14 @@ from vgg_pytorch import vgg16 as model_vgg16
 
 class Classifier(nn.Module):
 
-  def __init__(self, pretrained='/npy/weights', OF_option='None'):
+  def __init__(self, pretrained='/npy/weights', OF_option='None', model_save_path=''):
 
     super(Classifier, self).__init__()
     self.finetuning = pretrained
     # self.std = np.array((0.229, 0.224, 0.225))
 
     self.OF_option = OF_option
+    self.model_save_path = model_save_path
 
     self._initialize_weights()
 
@@ -44,7 +45,7 @@ class Classifier(nn.Module):
 
     elif 'emotionnet' in self.finetuning:
       mode='emotionnet'
-      self.model = model_vgg16(pretrained=mode, OF_option=self.OF_option, num_classes=22)
+      self.model = model_vgg16(pretrained=mode, OF_option=self.OF_option, model_save_path=self.model_save_path, num_classes=22)
       modules = self.model.modules()
       for m in modules:
         if isinstance(m, nn.Linear) and m.weight.data.size()[0]==22:
@@ -90,7 +91,7 @@ class Classifier(nn.Module):
           flag=True
       assert flag
 
-    elif self.finetuning=='RANDOM':
+    elif self.finetuning=='random':
       mode='RANDOM'
       self.model = model_vgg16(pretrained='', OF_option=self.OF_option, num_classes=1)      
 

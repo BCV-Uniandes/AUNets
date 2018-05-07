@@ -34,6 +34,15 @@ def update_folder(config, folder):
   config.log_path = os.path.join(config.log_path, folder)
   config.model_save_path = os.path.join(config.model_save_path, folder)
 
+def remove_folder(config):
+  import os
+  logs = config.log_path
+  models = config.model_save_path
+  print("YOU ARE ABOUT TO REMOVE EVERYTHING IN:\n{}\n{}".format(logs, models))
+  # print("YOU ARE ABOUT TO REMOVE EVERYTHING IN:\n{}\n{}".format(logs, models))
+  # raw_input("ARE YOU SURE?")
+  os.system("rm -r {} {}".format(logs, models))
+
 def update_config(config):
   import os, glob, math, imageio
 
@@ -49,6 +58,9 @@ def update_config(config):
   if config.HYDRA: update_folder(config, 'HYDRA')
   update_folder(config, 'OF_'+config.OF_option)
   update_folder(config, config.finetuning)
+
+  if config.DELETE:
+    remove_folder(config)
   
   config.xlsfile = os.path.join(config.results_path, config.mode_data, config.finetuning+'.xlsx')
 

@@ -6,4 +6,4 @@ pretrained/
 *senet.py
 broxDir
 cafferesults/
-
+caffe2npy*
