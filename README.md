@@ -4,6 +4,6 @@
 ![](misc/arqs.png)
 
 ## Network (VGG - Fig (a))
-![](misc/network.png)
+![](misc/VGG16-OF_None.png)
 
 ## Other Optical Flow stream architectures are found in `misc` folder
