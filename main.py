@@ -12,8 +12,6 @@ import numpy as np
 import config as cfg
 #CUDA_VISIBLE_DEVICES=0 ipython main.py -- --num_epochs 15 --batch_size 8 --image_size 256 --fold 0 --use_tensorboard --DYNAMIC_COLOR --CelebA_GAN
 
-def str2bool(v):
-  return v.lower() in ('true')
 
 def main(config):
   # For fast training
@@ -30,13 +28,13 @@ def main(config):
 
   img_size = config.image_size
 
-  rgb_loader = get_loader(config.metadata_path, img_size,
-                   img_size, config.batch_size, config.mode, num_workers=config.num_workers, OF=False, \
-                   verbose=True)   
+  rgb_loader = get_loader(config.metadata_path, img_size, img_size, config.batch_size, 
+                    config.mode, num_workers=config.num_workers, OF=False, \
+                   verbose=True, imagenet=config.finetuning=='imagenet', _255=config._255)   
 
   if config.OF: of_loader = get_loader(config.metadata_path, img_size,
                    img_size, config.batch_size, config.mode, num_workers=config.num_workers, OF=True, \
-                   verbose=True)
+                   verbose=True, imagenet=config.finetuning=='imagenet', _255=config._255)
 
   # Solver
   from solver import Solver   
@@ -49,6 +47,8 @@ def main(config):
   if config.mode == 'train':
     solver.train()
     solver.test()
+  elif config.mode == 'val':
+    solver.val(load=True, init=True)
   elif config.mode == 'test':
     solver.test()
 
@@ -70,6 +70,9 @@ if __name__ == '__main__':
   parser.add_argument('--num_workers', type=int, default=4) 
   parser.add_argument('--HYDRA', action='store_true', default=False)
   parser.add_argument('--DELETE', action='store_true', default=False)
+  parser.add_argument('--TEST_TXT', action='store_true', default=False)
+  parser.add_argument('--TEST_PTH', action='store_true', default=False)
+  parser.add_argument('--_255', action='store_true', default=False)
 
   # Optical Flow
   parser.add_argument('--OF', type=str, default='None', \
@@ -79,7 +82,7 @@ if __name__ == '__main__':
   parser.add_argument('--test_model', type=str, default='')
 
   # Misc
-  parser.add_argument('--mode', type=str, default='train', choices=['train', 'test'])
+  parser.add_argument('--mode', type=str, default='train', choices=['train', 'val', 'test'])
   parser.add_argument('--use_tensorboard', action='store_true', default=False)
   parser.add_argument('--SHOW_MODEL', action='store_true', default=False)
   parser.add_argument('--GPU', type=str, default='3')
@@ -109,7 +112,3 @@ if __name__ == '__main__':
 
   print(config)
   main(config)
-
-  if config.AU=='24':
-    msj = config.xlsfile.replace('.xlsx','_TEST.xlsx')
-    os.system('echo {0} | mail -s "Training done - GPU {1} free" -A "{0}" rv.andres10@uniandes.edu.co'.format(msj, config.GPU))

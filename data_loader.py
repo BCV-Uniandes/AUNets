@@ -14,7 +14,7 @@ import tqdm
 
 
 class BP4D(Dataset):
-  def __init__(self, image_size, metadata_path, transform, mode, shuffling = False, OF = False, verbose=False):
+  def __init__(self, image_size, metadata_path, transform, mode, _255=False, shuffling = False, OF = False, verbose=False):
     # ipdb.set_trace()
     self.transform = transform
     self.mode = mode
@@ -22,8 +22,10 @@ class BP4D(Dataset):
     self.image_size = image_size
     self.OF = OF
     self.verbose = verbose
+    self._255= 255 if _255 else 1
     self.meta = '/home/afromero/datos/Databases/BP4D/'
-    self.metaSSD = '/home/afromero/ssd2'
+    self.metaSSD = '/home/afromero/datos/Databases/BP4D/'#'/home/afromero/ssd2'
+    # self.metaSSD = '../BP4D'
     file_txt = os.path.join(metadata_path, mode+'.txt')
     self.lines = open(file_txt, 'r').readlines()
 
@@ -40,7 +42,7 @@ class BP4D(Dataset):
     lines = [i.replace(self.meta, '').strip() for i in self.lines]
     if self.shuffling: random.shuffle(lines)   # random shuffling
     if self.verbose:
-      iter_ = tqdm.tqdm(enumerate(lines), total=len(lines), desc='Preprocessing...')
+      iter_ = tqdm.tqdm(enumerate(lines), ncols=10, total=len(lines), desc='Preprocessing...')
     else:
       iter_ = enumerate(lines)
     for i, line in iter_:
@@ -65,18 +67,23 @@ class BP4D(Dataset):
     image = Image.open(img_file)
     label = self.labels[index]
     # ipdb.set_trace()
-    return self.transform(image), torch.FloatTensor(label), self.filenames[index]
+    return self.transform(image)*self._255, torch.FloatTensor(label), self.filenames[index]
 
   def __len__(self):
     return self.num_data
 
 def get_loader(metadata_path, crop_size, image_size, batch_size, \
-        mode='train', OF=False, num_workers=0, verbose=False):
+        mode='train', imagenet=False, _255=False, OF=False, num_workers=0, verbose=False):
   """Build and return data loader."""
   
   #ImageNet normalization
-  # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-  normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[1.0, 1.0, 1.0])
+  # ipdb.set_trace()
+  if imagenet:
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+  else:
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[1.0, 1.0, 1.0])
+    # normalize = transforms.Normalize(mean=[0.406, 0.456, 0.485], std=[1.0, 1.0, 1.0])
+    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
   if mode == 'train':
     transform = transforms.Compose([
@@ -97,9 +104,8 @@ def get_loader(metadata_path, crop_size, image_size, batch_size, \
       # transforms.Normalize(mean, std),
       normalize,
       ])
-
   dataset = BP4D(image_size, metadata_path, transform, mode, \
-              shuffling=mode=='train', OF=OF, verbose=verbose)
+              shuffling=mode=='train', OF=OF, verbose=verbose, _255=_255)
 
   data_loader = DataLoader(dataset=dataset,
                batch_size=batch_size,

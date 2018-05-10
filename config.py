@@ -46,6 +46,8 @@ def remove_folder(config):
 def update_config(config):
   import os, glob, math, imageio
 
+  if config.SHOW_MODEL: config.batch_size=1
+
   config.OF_option = config.OF
   if config.OF!='None': 
     config.OF=True
@@ -56,7 +58,10 @@ def update_config(config):
   update_folder(config, folder_parameters)
   config.metadata_path = os.path.join(config.metadata_path, folder_parameters)
   if config.HYDRA: update_folder(config, 'HYDRA')
-  update_folder(config, 'OF_'+config.OF_option)
+  if config._255:
+    update_folder(config, 'OF_'+config.OF_option)
+  else:
+    update_folder(config, 'OF_'+config.OF_option+'_')
   update_folder(config, config.finetuning)
 
   if config.DELETE:

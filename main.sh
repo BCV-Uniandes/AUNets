@@ -35,7 +35,23 @@ case $key in
     -DELETE|--DELETE)
     DELETE=true
     shift # past argument
-    ;;               
+    ;;      
+    -TEST|--TEST)
+    TEST=true
+    shift # past argument
+    ;;      
+    -TEST_TXT|--TEST_TXT)
+    TEST_TXT=true
+    shift # past argument
+    ;;     
+    -TEST_PTH|--TEST_PTH)
+    TEST_PTH=true
+    shift # past argument
+    ;;         
+    -_255|--_255)
+    _255=true
+    shift # past argument
+    ;;         
     *)
 esac
 shift # past argument or value
@@ -48,10 +64,14 @@ if [ -z ${finetuning+x} ]; then declare -a finetuning=("emotionnet"); fi
 if [ -z ${fold+x} ]; then declare -a fold=( 0 1 2 ); fi
 if [ -z ${HYDRA+x} ]; then HYDRA=false; fi
 if [ -z ${DELETE+x} ]; then DELETE=false; fi
+if [ -z ${TEST+x} ]; then TEST=false; fi
+if [ -z ${TEST_TXT+x} ]; then TEST_TXT=false; fi
+if [ -z ${TEST_PTH+x} ]; then TEST_PTH=false; fi  
+if [ -z ${_255+x} ]; then _255=false; fi  
 
 
 if [ $OF = "None" ] || [ $OF = "Alone" ]; then 
-  batch_size=118 
+  batch_size=117 
 elif [ $OF = "Horizontal" ] || [ $OF = "Vertical" ]; then 
   batch_size=24
 else
@@ -77,7 +97,11 @@ do
       command_train="./main.py -- --AU=$au --fold=$_fold --GPU=$gpu_id --OF $OF \
                     --batch_size=$batch_size --finetuning=$enc --mode_data=$mode_data"
       if [ "$HYDRA" = true ]; then command_train+=" --HYDRA"; fi  
-      if [ "$DELETE" = true ]; then command_train+=" --DELETE"; fi                      
+      if [ "$DELETE" = true ]; then command_train+=" --DELETE"; fi  
+      if [ "$_255" = true ]; then command_train+=" --_255"; fi  
+      if [ "$TEST" = true ]; then command_train+=" --mode test"; fi  
+      if [ "$TEST_TXT" = true ]; then command_train+=" --mode test --TEST_TXT"; fi
+      if [ "$TEST_PTH" = true ]; then command_train+=" --mode test --TEST_PTH"; fi                      
       echo $command_train
       eval $command_train
       echo ""

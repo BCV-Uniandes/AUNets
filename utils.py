@@ -7,6 +7,7 @@ import ipdb
 import math
 import xlsxwriter
 import openpyxl
+import tqdm
 from openpyxl.styles import Color, PatternFill, colors, Font
 
 def f1_score_max(gt, pred, thresh):
@@ -33,8 +34,7 @@ def f1_score_max(gt, pred, thresh):
 
   return F1, F1_MAX, F1_THRESH
 
-def f1_score(gt, pred, F1_Thresh=0.5, median=False):
-  import pandas
+def f1_score(gt, pred, F1_Thresh=0.5, files=None, median=False):  
   from sklearn.metrics import precision_score, recall_score
   from sklearn.metrics import f1_score as f1s
   if type(gt)==list: gt = np.array(gt)
@@ -46,19 +46,51 @@ def f1_score(gt, pred, F1_Thresh=0.5, median=False):
   F1_MAX=F1
 
   if median:
-    # ipdb.set_trace()
-    output_median3 = np.array(pandas.Series(output).rolling(window=3, center=True).median().bfill().ffill())
+    output_median3, output_median5, output_median7 = get_median(output, files)
     F1_median3 = f1s(gt, output_median3)
-
-    output_median5 = np.array(pandas.Series(output).rolling(window=5, center=True).median().bfill().ffill())
     F1_median5 = f1s(gt, output_median5)
-
-    output_median7 = np.array(pandas.Series(output).rolling(window=7, center=True).median().bfill().ffill())
     F1_median7 = f1s(gt, output_median7)
 
     return [F1], F1_MAX, F1_Thresh, F1_median3, F1_median5, F1_median7
   else:
     return [F1], F1_MAX, F1_Thresh 
+
+def get_median(pred, files, mode='video'):
+  import pandas
+  if mode=='video':
+    video_files, video_hist = get_unique_files(files)
+    output_median = []
+    output_median3 = []
+    output_median5 = []
+    output_median7 = []
+    count = 0
+    video = ''
+    for i in range(len(video_hist)): 
+      # assert video!=video_files[count]
+      if video==video_files[count]: ipdb.set_trace()
+      video = video_files[count]
+      range_frames = video_hist[video]
+      output_median = pred[count:count+range_frames]
+      count += range_frames
+
+      output_median3.extend(np.array(pandas.Series(output_median).rolling(window=3, center=True).median().bfill().ffill()))
+      output_median5.extend(np.array(pandas.Series(output_median).rolling(window=5, center=True).median().bfill().ffill()))
+      output_median7.extend(np.array(pandas.Series(output_median).rolling(window=7, center=True).median().bfill().ffill()))
+    # ipdb.set_trace()
+  elif mode=='all':
+    output_median3 = np.array(pandas.Series(pred).rolling(window=3, center=True).median().bfill().ffill())
+    output_median5 = np.array(pandas.Series(pred).rolling(window=5, center=True).median().bfill().ffill())
+    output_median7 = np.array(pandas.Series(pred).rolling(window=7, center=True).median().bfill().ffill())
+
+  return output_median3, output_median5, output_median7
+
+def get_unique_files(files):
+  video_files = [os.path.dirname(line) for line in files]
+  hist_video = {}
+  for file_ in video_files: 
+    if file_ not in hist_video.keys(): hist_video[file_]=1
+    else: hist_video[file_]+=1
+  return video_files, hist_video
 
 def whereAU(au):
   return np.where(np.array(cfg.AUs)==au)[0][0]
@@ -160,8 +192,7 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
   import torch.nn.functional as F
   PREDICTION = []
   GROUNDTRUTH = []
-  total_idx=int(len(data_loader)/config.batch_size)  
-  count = 0
+  FILES = []
   loss = []
   if verbose: 
     print("-> xls results at "+config.xlsfile.replace('.xlsx','_'+mode+'.xlsx'))
@@ -170,12 +201,22 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
     # ipdb.set_trace()
 
   if OF is not None: of_loader = iter(OF)
-  if verbose: print('\n================================')
-  for i, (real_x, org_c, files) in enumerate(data_loader):
+  if verbose: 
+    print('\n================================')
+    iterator = tqdm.tqdm(enumerate(data_loader), total=len(data_loader), ncols=10, desc="{} forward".format(mode.upper()))
+  else:
+    iterator = enumerate(data_loader)
 
-    if verbose and os.path.isfile(config.pkl_data.format(mode.lower())): 
-      PREDICTION, GROUNDTRUTH = pickle.load(open(config.pkl_data.format(mode.lower())))
-      break
+  flag_continue = True
+  for i, (real_x, org_c, files) in iterator:
+
+    if verbose and config.TEST_TXT and flag_continue: 
+      try:
+        PREDICTION, GROUNDTRUTH, FILES = pickle.load(open(config.pkl_data.format(mode.lower())))
+        break
+      except:
+        flag_continue=False# PREDICTION, GROUNDTRUTH = pickle.load(open(config.pkl_data.format(mode.lower())))
+      
     # ipdb.set_trace()
     real_x = config.to_var(real_x, volatile=True)
     labels = org_c
@@ -189,7 +230,6 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
       out_temp = config.C(real_x)
     
     # output = ((F.sigmoid(out_cls_temp)>=0.5)*1.).data.cpu().numpy()
-    # ipdb.set_trace()
     output = F.sigmoid(out_temp)#[:,1]
     # loss.append(F.cross_entropy(out_temp, config.to_var(org_c).squeeze(1)))
     loss.append(config.LOSS(out_temp, config.to_var(org_c)))
@@ -198,18 +238,15 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
     #   print("Predicted:   "+str((output>=0.5)*1))
     #   print("Groundtruth: "+str(org_c))
 
-    count += org_c.shape[0]
-    if verbose:
-      string_ = str(count)+' / '+str(len(data_loader)*config.batch_size)
-      sys.stdout.write("\r%s" % string_)
-      sys.stdout.flush()    
+
     # ipdb.set_trace()
 
     PREDICTION.extend(output.data.cpu().numpy().flatten().tolist())
     GROUNDTRUTH.extend(labels.cpu().numpy().astype(np.uint8).tolist())
+    FILES.extend(['/'.join(file_.split('/')[-3:]) for file_ in files])
 
-  if verbose and not os.path.isfile(config.pkl_data.format(mode.lower())): 
-    pickle.dump([PREDICTION, GROUNDTRUTH], open(config.pkl_data.format(mode.lower()), 'w'))
+  if verbose: 
+    pickle.dump([PREDICTION, GROUNDTRUTH, FILES], open(config.pkl_data.format(mode.lower()), 'w'))
   if verbose: 
     print("")
     print >>config.f, ""
@@ -224,10 +261,10 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
   prediction = PREDICTION
   groundtruth = GROUNDTRUTH
   if mode=='TEST':
-    _, F1_real5, F1_Thresh5, F1_median3, F1_median5, F1_median7 = f1_score(groundtruth, prediction, 0.5, median=True)  
-    _, F1_real, F1_Thresh, F1_median3_th, F1_median5_th, F1_median7_th = f1_score(np.array(groundtruth), np.array(prediction), thresh, median=True)
+    _, F1_real5, F1_Thresh5, F1_median3, F1_median5, F1_median7 = f1_score(groundtruth, prediction, 0.5, files=FILES, median=True)  
+    _, F1_real, F1_Thresh, F1_median3_th, F1_median5_th, F1_median7_th = f1_score(np.array(groundtruth), np.array(prediction), thresh, files=FILES, median=True)
   else:
-    _, F1_real, F1_Thresh, F1_median3, F1_median5, F1_median7 = f1_score(np.array(groundtruth), np.array(prediction), thresh, median=True)
+    _, F1_real, F1_Thresh, F1_median3, F1_median5, F1_median7 = f1_score(np.array(groundtruth), np.array(prediction), thresh, files=FILES, median=True)
     F1_real5 = F1_real
     F1_median3_th = F1_median3;F1_median5_th = F1_median5;F1_median7_th = F1_median7
   _, F1_0, F1_Thresh_0 = f1_score(np.array(groundtruth), np.zeros_like(prediction), thresh)
