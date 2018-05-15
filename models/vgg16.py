@@ -15,13 +15,9 @@ import torch.legacy.nn as nn_legacy
 from torch.autograd import Variable
 import math
 import torch
-# torch.backends.cudnn.enabled=False
-
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-# from caffe_tensorflow import convert as caffe_tf
 from vgg_pytorch import vgg16 as model_vgg16
 
 class Classifier(nn.Module):
@@ -30,8 +26,6 @@ class Classifier(nn.Module):
 
     super(Classifier, self).__init__()
     self.finetuning = pretrained
-    # self.std = np.array((0.229, 0.224, 0.225))
-
     self.OF_option = OF_option
     self.model_save_path = model_save_path
 
@@ -91,17 +85,7 @@ class Classifier(nn.Module):
       mode='RANDOM'
       self.model = model_vgg16(pretrained='', OF_option=self.OF_option, num_classes=1)      
 
-
     print("[OK] Weights initialized from %s"%(mode))
-    
-  def caffemodel2npy(self, caffemodel, npy_file):
-    from caffe2npy import convert
-    def_path = 'models/pretrained/aunet/vgg16/deploy_Test.pt'
-    assert os.path.isfile(caffemodel), caffemodel+" must exist to finetune"
-    # convert(def_path, caffemodel, npy_file) 
-    # ipdb.set_trace()
-    convert(def_path, caffemodel, npy_file, 'test')    
-    # caffe_tf.convert(def_path, caffemodel, npy_file, npy_file.replace('npy','py'), 'test')
 
   def forward(self, image, OF=None):
     if OF is not None:

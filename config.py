@@ -39,8 +39,8 @@ def remove_folder(config):
   logs = config.log_path
   models = config.model_save_path
   print("YOU ARE ABOUT TO REMOVE EVERYTHING IN:\n{}\n{}".format(logs, models))
-  # print("YOU ARE ABOUT TO REMOVE EVERYTHING IN:\n{}\n{}".format(logs, models))
-  # raw_input("ARE YOU SURE?")
+  print("YOU ARE ABOUT TO REMOVE EVERYTHING IN:\n{}\n{}".format(logs, models))
+  raw_input("ARE YOU SURE?")
   os.system("rm -r {} {}".format(logs, models))
 
 def update_config(config):
@@ -58,10 +58,7 @@ def update_config(config):
   update_folder(config, folder_parameters)
   config.metadata_path = os.path.join(config.metadata_path, folder_parameters)
   if config.HYDRA: update_folder(config, 'HYDRA')
-  if config._255:
-    update_folder(config, 'OF_'+config.OF_option)
-  else:
-    update_folder(config, 'OF_'+config.OF_option+'_')
+  update_folder(config, 'OF_'+config.OF_option)
   update_folder(config, config.finetuning)
 
   if config.DELETE:

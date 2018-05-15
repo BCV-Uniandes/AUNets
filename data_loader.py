@@ -14,7 +14,7 @@ import tqdm
 
 
 class BP4D(Dataset):
-  def __init__(self, image_size, metadata_path, transform, mode, _255=False, shuffling = False, OF = False, verbose=False):
+  def __init__(self, image_size, metadata_path, transform, mode, shuffling = False, OF = False, verbose=False):
     # ipdb.set_trace()
     self.transform = transform
     self.mode = mode
@@ -22,7 +22,6 @@ class BP4D(Dataset):
     self.image_size = image_size
     self.OF = OF
     self.verbose = verbose
-    self._255= 255 if _255 else 1
     self.meta = '/home/afromero/datos/Databases/BP4D/'
     self.metaSSD = '/home/afromero/datos/Databases/BP4D/'#'/home/afromero/ssd2'
     # self.metaSSD = '../BP4D'
@@ -67,13 +66,13 @@ class BP4D(Dataset):
     image = Image.open(img_file)
     label = self.labels[index]
     # ipdb.set_trace()
-    return self.transform(image)*self._255, torch.FloatTensor(label), self.filenames[index]
+    return self.transform(image), torch.FloatTensor(label), self.filenames[index]
 
   def __len__(self):
     return self.num_data
 
 def get_loader(metadata_path, crop_size, image_size, batch_size, \
-        mode='train', imagenet=False, _255=False, OF=False, num_workers=0, verbose=False):
+        mode='train', imagenet=False, OF=False, num_workers=0, verbose=False):
   """Build and return data loader."""
   
   #ImageNet normalization
@@ -105,7 +104,7 @@ def get_loader(metadata_path, crop_size, image_size, batch_size, \
       normalize,
       ])
   dataset = BP4D(image_size, metadata_path, transform, mode, \
-              shuffling=mode=='train', OF=OF, verbose=verbose, _255=_255)
+              shuffling=mode=='train', OF=OF, verbose=verbose)
 
   data_loader = DataLoader(dataset=dataset,
                batch_size=batch_size,

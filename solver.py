@@ -33,14 +33,15 @@ class Solver(object):
     self.of_loader_val=None
     self.OF=config.OF
     self.OF_option = config.OF_option
+
+    # Hydra
     self.HYDRA = config.HYDRA
 
+    # Training settings
     self.image_size = config.image_size
     self.lr = config.lr
     self.beta1 = config.beta1
-    self.beta2 = config.beta2
-
-    # Training settings
+    self.beta2 = config.beta2    
     self.dataset = config.dataset
     self.num_epochs = config.num_epochs
     self.num_epochs_decay = config.num_epochs_decay
@@ -70,13 +71,10 @@ class Solver(object):
     self.SHOW_MODEL = config.SHOW_MODEL
     self.TEST_TXT = config.TEST_TXT
     self.TEST_PTH = config.TEST_PTH
-    self._255 = config._255
 
     self.DONE=False
     self.string_='00'
     self.TRAINED_FILE = os.path.join(self.model_save_path, 'TRAINED')
-    # if self.TEST_TXT or self.TEST_PTH:
-    #   os.system('touch {}'.format(self.TRAINED_FILE))
 
     if self.pretrained_model and not self.SHOW_MODEL:
 
@@ -87,7 +85,6 @@ class Solver(object):
 
       if os.path.isfile(self.TRAINED_FILE) :
         print("!!!Model already trained")
-        # self.TEST_TXT = True
         self.DONE=True
 
     if self.TEST_TXT: return
@@ -107,26 +104,27 @@ class Solver(object):
   def display_net(self):
     #pip install git+https://github.com/szagoruyko/pytorchviz
     from graphviz import Digraph
-    from torchviz import make_dot, make_dot_from_trace
+    try:
+      from torchviz import make_dot, make_dot_from_trace
+    except ImportError:
+      raise ImportError("pip install git+https://github.com/szagoruyko/pytorchviz")
     from utils import pdf2png
     input_ = self.to_var(torch.randn(1,3,224,224).type(torch.FloatTensor))
-    
+    start_time = time.time()
     if self.OF_option!='None':
-      start_time = time.time()
       y = self.C(input_, input_)
     else:
-      start_time = time.time()
       y = self.C(input_)
     elapsed = time.time() - start_time
     elapsed = str(datetime.timedelta(seconds=elapsed)) 
     print("Forward time: "+elapsed)
-    # g=make_dot(y, params=dict(self.C.named_parameters()))
-    # filename='misc/VGG16-OF_{}'.format(self.OF_option)
-    # g.filename=filename
-    # g.render()
-    # os.remove(filename)
-    # pdf2png(filename)
-    # print('Network saved at {}.png'.format(filename))
+    g=make_dot(y, params=dict(self.C.named_parameters()))
+    filename='misc/VGG16-OF_{}'.format(self.OF_option)
+    g.filename=filename
+    g.render()
+    os.remove(filename)
+    pdf2png(filename)
+    print('Network saved at {}.png'.format(filename))
 
   #=======================================================================================#
   #=======================================================================================#
@@ -151,14 +149,6 @@ class Solver(object):
     if self.TEST_TXT: return
     from models.vgg16 import Classifier
     self.C = Classifier(pretrained=self.finetuning, OF_option=self.OF_option, model_save_path=self.model_save_path) 
-
-    if self.SHOW_MODEL:
-      self.print_network(self.C, 'Classifier - OF: '+self.OF_option)
-      
-      if torch.cuda.is_available():
-        self.C.cuda()      
-        self.C.eval()   
-      return     
 
     trainable_params, name_params = self.get_trainable_params()
 
@@ -187,7 +177,6 @@ class Solver(object):
     for p in learnable_params:
       num_learn_params += p.numel()
 
-    # ipdb.set_trace()      
     if self.SHOW_MODEL: 
       print(name)
       print(model)
@@ -197,7 +186,6 @@ class Solver(object):
   #=======================================================================================#
   #=======================================================================================#
   def load_pretrained_model(self):
-    # if self.DONE: return
     model = os.path.join(
       self.model_save_path, '{}.pth'.format(self.pretrained_model))
     self.C.load_state_dict(torch.load(model))
@@ -243,12 +231,7 @@ class Solver(object):
   #=======================================================================================#
   #=======================================================================================#
   def train(self):
-    """Train StarGAN within a single dataset."""
 
-    # Set dataloader
-
-    # The number of iterations per epoch
-    # ipdb.set_trace()
     if self.DONE: return
     iters_per_epoch = len(self.rgb_loader)
 
@@ -261,7 +244,6 @@ class Solver(object):
       # Decay learning rate
       for i in range(start):
         if (i+1) > (self.num_epochs - self.num_epochs_decay):
-          # g_lr -= (self.g_lr / float(self.num_epochs_decay))
           lr -= (self.lr / float(self.num_epochs_decay))
           self.update_lr(lr)
           print ('Decay learning rate to: {}.'.format(lr))      
@@ -301,7 +283,7 @@ class Solver(object):
 
       for i, (rgb_img, rgb_label, rgb_files) in tqdm.tqdm(enumerate(self.rgb_loader), \
           total=len(self.rgb_loader), ncols=10, desc='Epoch: %d/%d | %s'%(e,self.num_epochs, Log)):
-        # ipdb.set_trace()
+
         rgb_img = self.to_var(rgb_img)
         rgb_label = self.to_var(rgb_label)
         if not self.OF:
@@ -313,8 +295,7 @@ class Solver(object):
             ipdb.set_trace()
           of_img = self.to_var(of_img)
           out = self.C(rgb_img, OF=of_img)
-        # ipdb.set_trace()
-        # loss_cls = F.cross_entropy(out, rgb_label.squeeze(1))
+
         loss_cls = self.LOSS(out, rgb_label)    
 
         # # Backward + Optimize
@@ -375,7 +356,6 @@ class Solver(object):
 
       # Decay learning rate
       if (e+1) > (self.num_epochs - self.num_epochs_decay):
-        # g_lr -= (self.g_lr / float(self.num_epochs_decay))
         lr -= (self.lr / float(self.num_epochs_decay))
         self.update_lr(lr)
         print ('Decay learning rate to: {}.'.format(lr))
@@ -383,8 +363,7 @@ class Solver(object):
   #=======================================================================================#
   #=======================================================================================#
   def val(self, init=False, load=False):
-    """Facial attribute transfer on CelebA or facial expression synthesis on RaFD."""
-    # Load trained parameters
+
     if init:
       from data_loader import get_loader
       # ipdb.set_trace()
@@ -425,8 +404,6 @@ class Solver(object):
   #=======================================================================================#
   #=======================================================================================#
   def test(self):
-    """Facial attribute transfer on CelebA or facial expression synthesis on RaFD."""
-    # Load trained parameters
     from data_loader import get_loader
     if self.test_model=='':
       last_file = sorted(glob.glob(os.path.join(self.model_save_path, '*.pth')))[-1]
@@ -437,27 +414,24 @@ class Solver(object):
     D_path = os.path.join(self.model_save_path, '{}.pth'.format(last_name))
     txt_path = os.path.join(self.model_save_path, '{}_{}.txt'.format(last_name,'{}'))
     self.pkl_data = os.path.join(self.model_save_path, '{}_{}.pkl'.format(last_name, '{}'))
-    # print(" [!!] {} model loaded...".format(D_path))
-    # self.G.load_state_dict(torch.load(G_path))
+
     if not self.DONE: 
       self.C.load_state_dict(torch.load(D_path))
       self.C.eval()
-    # ipdb.set_trace()
+
     data_loader_val = get_loader(self.metadata_path, self.image_size,
-                   self.image_size, self.batch_size, 'val', _255=self._255, imagenet=self.finetuning=='imagenet')
+                   self.image_size, self.batch_size, 'val', imagenet=self.finetuning=='imagenet')
     data_loader_test = get_loader(self.metadata_path, self.image_size,
-                   self.image_size, self.batch_size, 'test', _255=self._255, imagenet=self.finetuning=='imagenet')
+                   self.image_size, self.batch_size, 'test',imagenet=self.finetuning=='imagenet')
 
     if self.OF:
       of_loader_val = get_loader(self.metadata_path, self.image_size,
-                     self.image_size, self.batch_size, 'val', OF=True, _255=self._255, imagenet=self.finetuning=='imagenet')        
+                     self.image_size, self.batch_size, 'val', OF=True, imagenet=self.finetuning=='imagenet')        
       of_loader_test = get_loader(self.metadata_path, self.image_size,
-                   self.image_size, self.batch_size, 'test', OF=True, _255=self._255, imagenet=self.finetuning=='imagenet')   
+                   self.image_size, self.batch_size, 'test', OF=True, imagenet=self.finetuning=='imagenet')   
 
     if not hasattr(self, 'output_txt'):
-      # ipdb.set_trace()
       self.output_txt = txt_path
-      # ipdb.set_trace()
       try:
         txt_file = sorted(glob.glob(self.output_txt.format('*')))
         number_file = len(txt_file)
@@ -467,7 +441,6 @@ class Solver(object):
     print("Output directly to: {}".format(self.output_txt))
     self.f=open(self.output_txt, 'a')  
     self.thresh = np.linspace(0.01,0.99,200).astype(np.float32)
-    # ipdb.set_trace()
     if not self.OF:
       F1_real, F1_max, max_thresh_val,_, _  = F1_TEST(self, data_loader_val, mode = 'VAL')
       _ = F1_TEST(self, data_loader_test, thresh = max_thresh_val)

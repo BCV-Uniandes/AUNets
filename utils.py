@@ -12,10 +12,6 @@ from openpyxl.styles import Color, PatternFill, colors, Font
 
 def f1_score_max(gt, pred, thresh):
   from sklearn.metrics import precision_score, recall_score
-  #P, R, thresh = precision_recall_curve(gt, pred)
-  #F1 = 2*P*R/(P+R)
-  #F1_ = [n for n in F1 if not math.isnan(n)]
-
   P=[];R=[]
   for i in thresh:
     new_pred = ((pred>=i)*1).flatten()
@@ -41,7 +37,6 @@ def f1_score(gt, pred, F1_Thresh=0.5, files=None, median=False):
   if type(pred)==list: pred = np.array(pred)
   # F1_Thresh = 0.5
   output = (pred>F1_Thresh)*1.0
-  # ipdb.set_trace()
   F1 = f1s(gt, output)
   F1_MAX=F1
 
@@ -97,7 +92,6 @@ def whereAU(au):
 
 def createxls(config,mode):
   sheet = 'OF_'+config.OF_option if not config.HYDRA else 'Hydra_OF_'+config.OF_option
-  # ipdb.set_trace()
   try:
     wb = openpyxl.load_workbook(config.xlsfile.replace('.xlsx','_'+mode+'.xlsx'))
   except:
@@ -196,9 +190,7 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
   loss = []
   if verbose: 
     print("-> xls results at "+config.xlsfile.replace('.xlsx','_'+mode+'.xlsx'))
-
     workbook, worksheet, start_pos = createxls(config, mode)
-    # ipdb.set_trace()
 
   if OF is not None: of_loader = iter(OF)
   if verbose: 
@@ -207,41 +199,28 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
   else:
     iterator = enumerate(data_loader)
 
-  flag_continue = True
   for i, (real_x, org_c, files) in iterator:
-    # ipdb.set_trace()
     if verbose and config.TEST_TXT and flag_continue: 
       try:
         PREDICTION, GROUNDTRUTH, FILES = pickle.load(open(config.pkl_data.format(mode.lower())))
         break
       except:
         PREDICTION, GROUNDTRUTH = pickle.load(open(config.pkl_data.format(mode.lower())))
-        flag_continue=False# PREDICTION, GROUNDTRUTH = pickle.load(open(config.pkl_data.format(mode.lower())))
         break
       
-    # ipdb.set_trace()
     real_x = config.to_var(real_x, volatile=True)
     labels = org_c
 
     if OF is not None: 
       of_x, of_c, of_files = next(of_loader)
       of_x = config.to_var(of_x, volatile=True)
-      # ipdb.set_trace()
       out_temp = config.C(real_x, OF=of_x)
     else:
       out_temp = config.C(real_x)
     
-    # output = ((F.sigmoid(out_cls_temp)>=0.5)*1.).data.cpu().numpy()
-    output = F.sigmoid(out_temp)#[:,1]
-    # loss.append(F.cross_entropy(out_temp, config.to_var(org_c).squeeze(1)))
+    output = F.sigmoid(out_temp)
     loss.append(config.LOSS(out_temp, config.to_var(org_c)))
-    # if i==0 and verbose:
-    #   print(mode.upper())
-    #   print("Predicted:   "+str((output>=0.5)*1))
-    #   print("Groundtruth: "+str(org_c))
 
-
-    # ipdb.set_trace()
 
     PREDICTION.extend(output.data.cpu().numpy().flatten().tolist())
     GROUNDTRUTH.extend(labels.cpu().numpy().astype(np.uint8).tolist())
@@ -252,9 +231,6 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
   if verbose: 
     print("")
     print >>config.f, ""
-  # print("[Min and Max predicted: "+str(min(prediction))+ " " + str(max(prediction))+"]")
-  # print >>config.f, "[Min and Max predicted: "+str(min(prediction))+ " " + str(max(prediction))+"]"
-  # ipdb.set_trace()
 
   PREDICTION = np.array(PREDICTION).flatten()
   GROUNDTRUTH = np.array(GROUNDTRUTH).flatten()

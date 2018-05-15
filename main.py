@@ -72,7 +72,6 @@ if __name__ == '__main__':
   parser.add_argument('--DELETE', action='store_true', default=False)
   parser.add_argument('--TEST_TXT', action='store_true', default=False)
   parser.add_argument('--TEST_PTH', action='store_true', default=False)
-  parser.add_argument('--_255', action='store_true', default=False)
 
   # Optical Flow
   parser.add_argument('--OF', type=str, default='None', \
@@ -100,8 +99,7 @@ if __name__ == '__main__':
   parser.add_argument('--pretrained_model', type=str, default='')   
 
   # Step size
-  parser.add_argument('--log_step', type=int, default=2000)
-  parser.add_argument('--model_save_step', type=int, default=20000)
+  parser.add_argument('--log_step', type=int, default=2000)# tensorboard update
 
   config = parser.parse_args()
 

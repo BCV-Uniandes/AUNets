@@ -12,12 +12,7 @@ We provide pre-trained models, using the PyTorch :mod:`torch.utils.model_zoo`.
 These can be constructed by passing ``pretrained=True``:
 .. code:: python
   import torchvision.models as models
-  resnet18 = models.resnet18(pretrained=True)
-  alexnet = models.alexnet(pretrained=True)
-  squeezenet = models.squeezenet1_0(pretrained=True)
   vgg16 = models.vgg16(pretrained=True)
-  densenet = models.densenet_161(pretrained=True)
-  inception = models.inception_v3(pretrained=True)
 All pre-trained models expect input images normalized in the same way,
 i.e. mini-batches of 3-channel RGB images of shape (3 x H x W),
 where H and W are expected to be at least 224.
@@ -33,21 +28,11 @@ An example of such normalization can be found in the imagenet example
 """
 
 
-__all__ = [
-  'VGG', 'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn',
-  'vgg19_bn', 'vgg19',
-]
+__all__ = ['VGG', 'vgg16']
 
 
 model_urls = {
-  'vgg11': 'https://download.pytorch.org/models/vgg11-bbd30ac9.pth',
-  'vgg13': 'https://download.pytorch.org/models/vgg13-c768596a.pth',
   'vgg16': 'https://download.pytorch.org/models/vgg16-397923af.pth',
-  'vgg19': 'https://download.pytorch.org/models/vgg19-dcbb9e9d.pth',
-  'vgg11_bn': 'https://download.pytorch.org/models/vgg11_bn-6002323d.pth',
-  'vgg13_bn': 'https://download.pytorch.org/models/vgg13_bn-abd245e5.pth',
-  'vgg16_bn': 'https://download.pytorch.org/models/vgg16_bn-6c64b313.pth',
-  'vgg19_bn': 'https://download.pytorch.org/models/vgg19_bn-c79401a0.pth',
 }
 
 #====================================================================================================#
@@ -390,9 +375,8 @@ class VGG_FC7(nn.Module):
 def vgg16(pretrained='', OF_option='None', model_save_path='', **kwargs):
   """VGG 16-layer model (configuration "D")
   Args:
-    pretrained (bool): If True, returns a model pre-trained on ImageNet
+    pretrained (str): If '', returns a model pre-trained on ImageNet
   """
-  # ipdb.set_trace()
   #====================================================================================================#
   #====================================================================================================#
   if pretrained=='ImageNet':

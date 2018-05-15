@@ -47,11 +47,7 @@ case $key in
     -TEST_PTH|--TEST_PTH)
     TEST_PTH=true
     shift # past argument
-    ;;         
-    -_255|--_255)
-    _255=true
-    shift # past argument
-    ;;         
+    ;;       
     *)
 esac
 shift # past argument or value
@@ -67,7 +63,6 @@ if [ -z ${DELETE+x} ]; then DELETE=false; fi
 if [ -z ${TEST+x} ]; then TEST=false; fi
 if [ -z ${TEST_TXT+x} ]; then TEST_TXT=false; fi
 if [ -z ${TEST_PTH+x} ]; then TEST_PTH=false; fi  
-if [ -z ${_255+x} ]; then _255=false; fi  
 
 
 if [ $OF = "None" ] || [ $OF = "Alone" ]; then 
@@ -98,7 +93,6 @@ do
                     --batch_size=$batch_size --finetuning=$enc --mode_data=$mode_data"
       if [ "$HYDRA" = true ]; then command_train+=" --HYDRA"; fi  
       if [ "$DELETE" = true ]; then command_train+=" --DELETE"; fi  
-      if [ "$_255" = true ]; then command_train+=" --_255"; fi  
       if [ "$TEST" = true ]; then command_train+=" --mode test"; fi  
       if [ "$TEST_TXT" = true ]; then command_train+=" --mode test --TEST_TXT"; fi
       if [ "$TEST_PTH" = true ]; then command_train+=" --mode test --TEST_PTH"; fi                      
