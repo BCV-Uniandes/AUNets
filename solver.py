@@ -75,13 +75,19 @@ class Solver(object):
     self.DONE=False
     self.string_='00'
     self.TRAINED_FILE = os.path.join(self.model_save_path, 'TRAINED')
-    if self.TEST_TXT or self.TEST_PTH:
-      os.system('touch {}'.format(self.TRAINED_FILE))
+    # if self.TEST_TXT or self.TEST_PTH:
+    #   os.system('touch {}'.format(self.TRAINED_FILE))
 
     if self.pretrained_model and not self.SHOW_MODEL:
-      if os.path.isfile(self.TRAINED_FILE):
-        print("!!!Model already trained")
+
+      txt_file = glob.glob(os.path.join(self.model_save_path, '*.txt'))
+      if txt_file and not self.TEST_PTH:
         self.TEST_TXT = True
+        os.system('touch {}'.format(self.TRAINED_FILE))
+
+      if os.path.isfile(self.TRAINED_FILE) :
+        print("!!!Model already trained")
+        # self.TEST_TXT = True
         self.DONE=True
 
     if self.TEST_TXT: return
@@ -103,22 +109,24 @@ class Solver(object):
     from graphviz import Digraph
     from torchviz import make_dot, make_dot_from_trace
     from utils import pdf2png
-    input_ = self.to_var(torch.randn(1,3,224,224))
-    start_time = time.time()
+    input_ = self.to_var(torch.randn(1,3,224,224).type(torch.FloatTensor))
+    
     if self.OF_option!='None':
+      start_time = time.time()
       y = self.C(input_, input_)
     else:
+      start_time = time.time()
       y = self.C(input_)
     elapsed = time.time() - start_time
     elapsed = str(datetime.timedelta(seconds=elapsed)) 
     print("Forward time: "+elapsed)
-    g=make_dot(y, params=dict(self.C.named_parameters()))
-    filename='misc/VGG16-OF_{}'.format(self.OF_option)
-    g.filename=filename
-    g.render()
-    os.remove(filename)
-    pdf2png(filename)
-    print('Network saved at {}.png'.format(filename))
+    # g=make_dot(y, params=dict(self.C.named_parameters()))
+    # filename='misc/VGG16-OF_{}'.format(self.OF_option)
+    # g.filename=filename
+    # g.render()
+    # os.remove(filename)
+    # pdf2png(filename)
+    # print('Network saved at {}.png'.format(filename))
 
   #=======================================================================================#
   #=======================================================================================#
@@ -143,6 +151,14 @@ class Solver(object):
     if self.TEST_TXT: return
     from models.vgg16 import Classifier
     self.C = Classifier(pretrained=self.finetuning, OF_option=self.OF_option, model_save_path=self.model_save_path) 
+
+    if self.SHOW_MODEL:
+      self.print_network(self.C, 'Classifier - OF: '+self.OF_option)
+      
+      if torch.cuda.is_available():
+        self.C.cuda()      
+        self.C.eval()   
+      return     
 
     trainable_params, name_params = self.get_trainable_params()
 

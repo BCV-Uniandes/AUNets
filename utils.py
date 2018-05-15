@@ -55,7 +55,7 @@ def f1_score(gt, pred, F1_Thresh=0.5, files=None, median=False):
   else:
     return [F1], F1_MAX, F1_Thresh 
 
-def get_median(pred, files, mode='video'):
+def get_median(pred, files, mode='all'):
   import pandas
   if mode=='video':
     video_files, video_hist = get_unique_files(files)
@@ -209,13 +209,15 @@ def F1_TEST(config, data_loader, mode = 'TEST', thresh = 0.5, OF= None, verbose=
 
   flag_continue = True
   for i, (real_x, org_c, files) in iterator:
-
+    # ipdb.set_trace()
     if verbose and config.TEST_TXT and flag_continue: 
       try:
         PREDICTION, GROUNDTRUTH, FILES = pickle.load(open(config.pkl_data.format(mode.lower())))
         break
       except:
+        PREDICTION, GROUNDTRUTH = pickle.load(open(config.pkl_data.format(mode.lower())))
         flag_continue=False# PREDICTION, GROUNDTRUTH = pickle.load(open(config.pkl_data.format(mode.lower())))
+        break
       
     # ipdb.set_trace()
     real_x = config.to_var(real_x, volatile=True)
