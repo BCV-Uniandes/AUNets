@@ -32,7 +32,7 @@ def cropAndResize(anImage, finalSize):
 
 def transformImagesResize(source, targetDir,size):
   if os.path.isfile(targetDir + '/0001.jpg') or  os.path.isfile(targetDir + '/001.jpg') or  os.path.isfile(targetDir + '/0001.jpg'):#frames are there already
-  print ('Frames for  ', source, ' already resized')
+    print ('Frames for  ', source, ' already resized')
     return
   
   dirs = os.listdir(source)
