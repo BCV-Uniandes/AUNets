@@ -3,6 +3,13 @@ This repo provides a PyTorch implementation for AUNets. AUNets relies on the pow
 
 Paper: https://arxiv.org/pdf/1704.07863.pdf
 
+## Usage
+`./main.sh -GPU 0 -OF None` #It will train AUNets (12 models and 3 folds) from emotionnet weights. 
+`./main.sh -GPU 0 -OF None -HYDRA true` #It will train HydraNets (12 models and 3 folds) from emotionnet weights. 
+
+`./main.sh -GPU 0 -OF None -finetuning imagenet` #It will train AUNets (12 models and 3 folds) from imagenet weights. 
+`./main.sh -GPU 0 -OF None -HYDRA true -finetuning imagenet` #It will train HydraNets (12 models and 3 folds) from imagenet weights. 
+
 ## VGG16 Architecture
 ![](misc/arqs.png)
 
