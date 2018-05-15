@@ -23,6 +23,7 @@ Other Optical Flow stream architectures are found in `misc` folder
 As each model can be as heavy as 1GB for a total of 36GB per network variant (12 AUs - 3 folds). Please feel free to create an issue asking for the weights, I will supply a temporal link to download them. I am doing this because I cannot keep open a link with at least ~40GB forever.  
 
 ## Results using [misc/VGG16-OF_Horizontal.png](misc/VGG16-OF_Horizontal.png)
+These results are reported using three-fold cross validation over the BP4D dataset. 
 
 <table>
 <thead>
