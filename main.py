@@ -30,11 +30,11 @@ def main(config):
 
   rgb_loader = get_loader(config.metadata_path, img_size, img_size, config.batch_size, 
                     config.mode, num_workers=config.num_workers, OF=False, \
-                   verbose=True, imagenet=config.finetuning=='imagenet', _255=config._255)   
+                   verbose=True, imagenet=config.finetuning=='imagenet')   
 
   if config.OF: of_loader = get_loader(config.metadata_path, img_size,
                    img_size, config.batch_size, config.mode, num_workers=config.num_workers, OF=True, \
-                   verbose=True, imagenet=config.finetuning=='imagenet', _255=config._255)
+                   verbose=True, imagenet=config.finetuning=='imagenet')
 
   # Solver
   from solver import Solver   
@@ -51,6 +51,8 @@ def main(config):
     solver.val(load=True, init=True)
   elif config.mode == 'test':
     solver.test()
+  elif config.mode == 'sample':
+    solver.sample()
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
@@ -81,7 +83,7 @@ if __name__ == '__main__':
   parser.add_argument('--test_model', type=str, default='')
 
   # Misc
-  parser.add_argument('--mode', type=str, default='train', choices=['train', 'val', 'test'])
+  parser.add_argument('--mode', type=str, default='train', choices=['train', 'val', 'test', 'sample'])
   parser.add_argument('--use_tensorboard', action='store_true', default=False)
   parser.add_argument('--SHOW_MODEL', action='store_true', default=False)
   parser.add_argument('--GPU', type=str, default='3')
@@ -94,7 +96,7 @@ if __name__ == '__main__':
   parser.add_argument('--fold', type=str, default='0')
   parser.add_argument('--mode_data', type=str, default='normal', choices=['normal', 'aligned'])  
 
-  parser.add_argument('--AU', type=str, default='')
+  parser.add_argument('--AU', type=str, default='1')
   parser.add_argument('--finetuning', type=str, default='emotionnet', choices=['emotionnet', 'imagenet', 'random'])  
   parser.add_argument('--pretrained_model', type=str, default='')   
 

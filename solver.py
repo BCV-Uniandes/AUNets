@@ -90,14 +90,15 @@ class Solver(object):
     if self.TEST_TXT: return
 
     # Build tensorboard if use
-    self.build_model()
-    if self.SHOW_MODEL: return
-    if self.use_tensorboard:
-      self.build_tensorboard()
+    if config.mode!='sample':
+      self.build_model()
+      if self.SHOW_MODEL: return
+      if self.use_tensorboard:
+        self.build_tensorboard()
 
-    # Start with trained model
-    if self.pretrained_model:
-      self.load_pretrained_model()
+      # Start with trained model
+      if self.pretrained_model:
+        self.load_pretrained_model()
 
   #=======================================================================================#
   #=======================================================================================#
@@ -218,7 +219,14 @@ class Solver(object):
   #=======================================================================================#
   #=======================================================================================#
   def denorm(self, x):
-    out = (x + 1) / 2
+    if self.finetuning=='imagenet':
+      normalize = {'mean':[0.485, 0.456, 0.406], 'std':[0.229, 0.224, 0.225]}
+    else:
+      normalize = {'mean':[0.485, 0.456, 0.406], 'std':[1.0, 1.0, 1.0]}
+    std = torch.from_numpy(np.reshape(normalize['std'],(1,-1,1,1)).astype(np.float32))
+    mean = torch.from_numpy(np.reshape(normalize['mean'],(1,-1,1,1)).astype(np.float32))
+    out = (x*std)+mean
+    #out = (x + 1) / 2
     return out.clamp_(0, 1)
 
   #=======================================================================================#
@@ -449,3 +457,16 @@ class Solver(object):
       _ = F1_TEST(self, data_loader_test, thresh = max_thresh_val, OF=of_loader_test)
    
     self.f.close()
+
+  #=======================================================================================#
+  #=======================================================================================#
+  def sample(self):
+    """Get a dataset sample."""
+    import math
+    if not os.path.isdir('show'): os.makedirs('show')
+    for i, (rgb_img, rgb_label, rgb_files) in enumerate(self.rgb_loader):
+      # ipdb.set_trace()
+      min_size=min(rgb_img.size(0),64)
+      img_file = 'show/%s.jpg'%(str(i).zfill(4))
+      save_image(self.denorm(rgb_img[:min_size]), img_file, nrow=8)
+      if i==25: break

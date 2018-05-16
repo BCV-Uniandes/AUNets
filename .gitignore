@@ -5,6 +5,7 @@ caffe/
 pretrained/
 *senet.py
 broxDir
-cafferesults/
+caffe_results/
 caffe2npy*
 screen*
+show/

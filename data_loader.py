@@ -25,6 +25,7 @@ class BP4D(Dataset):
     self.meta = '/home/afromero/datos/Databases/BP4D/'
     self.metaSSD = '/home/afromero/datos/Databases/BP4D/'#'/home/afromero/ssd2'
     # self.metaSSD = '../BP4D'
+    if mode=='sample': mode='train'
     file_txt = os.path.join(metadata_path, mode+'.txt')
     self.lines = open(file_txt, 'r').readlines()
 
@@ -52,6 +53,7 @@ class BP4D(Dataset):
 
       label = [int(splits[1])]
 
+      if self.mode=='sample' and 'Jitter' in filename: continue
       self.filenames.append(filename)
       self.labels.append(label)
     # ipdb.set_trace()
@@ -84,7 +86,7 @@ def get_loader(metadata_path, crop_size, image_size, batch_size, \
     # normalize = transforms.Normalize(mean=[0.406, 0.456, 0.485], std=[1.0, 1.0, 1.0])
     # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
-  if mode == 'train':
+  if mode == 'train' or mode=='sample':
     transform = transforms.Compose([
       # transforms.CenterCrop(crop_size),
       transforms.Resize((image_size, image_size), interpolation=Image.ANTIALIAS),   
@@ -104,7 +106,7 @@ def get_loader(metadata_path, crop_size, image_size, batch_size, \
       normalize,
       ])
   dataset = BP4D(image_size, metadata_path, transform, mode, \
-              shuffling=mode=='train', OF=OF, verbose=verbose)
+              shuffling=mode=='train' or mode=='sample', OF=OF, verbose=verbose)
 
   data_loader = DataLoader(dataset=dataset,
                batch_size=batch_size,
