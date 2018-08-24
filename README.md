@@ -80,3 +80,31 @@ These results are reported using three-fold cross validation over the BP4D datas
 </tr>
 </tbody>
 </table>
+
+____
+## Three fold:
+Based on [DRML](http://openaccess.thecvf.com/content_cvpr_2016/papers/Zhao_Deep_Region_and_CVPR_2016_paper.pdf) paper, we use their exact subject-exclusive three fold testing (These subjects are exclusively for testing on each fold, the remaining subjects are for train/val):
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;"><strong>Fold</strong></th>
+<th style="text-align: center;"><strong><em>Subjects</em></strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;"><p><strong>1</strong></p></td>
+<td style="text-align: center;">['F001', 'F002', 'F008', 'F009', 'F010', 'F016', 'F018', 'F023', 'M001', 'M004', 'M007', 'M008', 'M012', 'M014']</td>
+</tr>
+</tbody>
+<tr class="odd">
+<td style="text-align: right;"><p><strong>2</strong></p></td>
+<td style="text-align: center;">['F003', 'F005', 'F011', 'F013', 'F020', 'F022', 'M002', 'M005', 'M010', 'M011', 'M013', 'M016', 'M017', 'M018']</td>
+</tr>
+</tbody>
+<tr class="odd">
+<td style="text-align: right;"><p><strong>3</strong></p></td>
+<td style="text-align: center;">['F004', 'F006', 'F007', 'F012', 'F014', 'F015', 'F017', 'F019', 'F021', 'M003', 'M006', 'M009', 'M015']</td>
+</tr>
+</tbody>
+</table>
