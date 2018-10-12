@@ -9,11 +9,11 @@ Project page: https://biomedicalcomputervision.uniandes.edu.co/index.php/researc
 
 ## Usage (TRAIN)
 ```bash
-./main.sh -GPU 0 -OF None #It will train AUNets (12 models and 3 folds) from emotionnet weights.
-./main.sh -GPU 0 -OF None -HYDRA true #It will train HydraNets (12 models and 3 folds) from emotionnet weights. 
+$./main.sh -GPU 0 -OF None #It will train AUNets (12 models and 3 folds) from emotionnet weights.
+$./main.sh -GPU 0 -OF None -HYDRA true #It will train HydraNets (12 models and 3 folds) from emotionnet weights. 
 
-./main.sh -GPU 0 -OF None -finetuning imagenet #It will train AUNets (12 models and 3 folds) from imagenet weights. 
-./main.sh -GPU 0 -OF None -HYDRA true -finetuning imagenet #It will train HydraNets (12 models and 3 folds) from imagenet weights. 
+$./main.sh -GPU 0 -OF None -finetuning imagenet #It will train AUNets (12 models and 3 folds) from imagenet weights. 
+$./main.sh -GPU 0 -OF None -HYDRA true -finetuning imagenet #It will train HydraNets (12 models and 3 folds) from imagenet weights. 
 
 # -OF options: None, Alone, Horizontal, Channels, Conv, FC6, FC7. [default=None].
 # -finetuning options: emotionnet, imagenet, random. [default=emotionnet].
@@ -24,7 +24,7 @@ Project page: https://biomedicalcomputervision.uniandes.edu.co/index.php/researc
 
 ## Usage (DEMO)
 ```bash
-./main.sh -AU 12 -gpu 0 -fold 0 -OF Horizontal -DEMO Demo
+$./main.sh -AU 12 -gpu 0 -fold 0 -OF Horizontal -DEMO Demo
 
 # -DEMO: folder or image location (absolute or relative). 
 #        When OF!=None, DEMO must be a folder that contains *ONLY* RGB images. 
@@ -33,15 +33,14 @@ Project page: https://biomedicalcomputervision.uniandes.edu.co/index.php/researc
 # It will output the confidence score for each image in the folder, or for one single image if DEMO is a file.
 
 # Example
-afromero@bcv002:~/datos2/AUNets$ ./main.sh -AU 12 -gpu 0 -fold 0 -OF None -DEMO Demo
-./main.py -- --AU=12 --fold=0 --GPU=0 --OF None --DEMO Demo --batch_size=117 --finetuning=emotionnet --mode_data=normal
+$./main.sh -AU 12 -gpu 0 -fold 0 -OF None -DEMO Demo
+./main.py -- --AU=12 --fold=0 --GPU=0 --OF None --DEMO Demo --finetuning=emotionnet --mode_data=normal
  [!!] loaded trained model: ./snapshot/models/BP4D/normal/fold_0/AU12/OF_None/emotionnet/02_1800.pth!
 AU12 - OF None | Forward  | Demo/000.jpg : 0.00438882643357
 AU12 - OF None | Forward  | Demo/012.jpg : 0.00548902712762
 AU12 - OF None | Forward  | Demo/024.jpg : 0.00295104249381
 AU12 - OF None | Forward  | Demo/036.jpg : 0.00390655593947
 AU12 - OF None | Forward  | Demo/048.jpg : 0.00493786809966
-
 ```
 
 ## VGG16 Architecture
