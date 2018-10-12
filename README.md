@@ -1,7 +1,26 @@
 # AUNets
 This repo provides a PyTorch implementation for AUNets. AUNets relies on the power of having independent and binaries CNNs for each facial expression. It works with the hollistical facial image *i.e.*, no keypoints or facial aligment needed. 
 
-Paper: https://arxiv.org/pdf/1704.07863.pdf
+Paper: A. Romero, J. Leon, P. Arbelaez. Multi-View Dynamic Facial Action Unit Detection. 
+To appear in the Journal of Image and Vision Computing.
+Pre-print: https://arxiv.org/pdf/1704.07863.pdf
+
+Project page: https://biomedicalcomputervision.uniandes.edu.co/index.php/research?id=30
+
+## Usage
+```bash
+./main.sh -GPU 0 -OF None #It will train AUNets (12 models and 3 folds) from emotionnet weights.
+./main.sh -GPU 0 -OF None -HYDRA true #It will train HydraNets (12 models and 3 folds) from emotionnet weights. 
+
+./main.sh -GPU 0 -OF None -finetuning imagenet #It will train AUNets (12 models and 3 folds) from imagenet weights. 
+./main.sh -GPU 0 -OF None -HYDRA true -finetuning imagenet #It will train HydraNets (12 models and 3 folds) from imagenet weights. 
+
+# -OF options: None, Alone, Horizontal, Channels, Conv, FC6, FC7. [default=None].
+# -finetuning options: emotionnet, imagenet, random. [default=emotionnet].
+# -au options: 1,2,4,...,24. [default=all].
+# -fold options: 0,1,2. [default=all].
+# -mode_data options: normal, aligned. [default=normal].
+```
 
 ## VGG16 Architecture
 ![](misc/arqs.png)
@@ -60,6 +79,34 @@ These results are reported using three-fold cross validation over the BP4D datas
 <td style="text-align: center;">47.3</td>
 <td style="text-align: center;">49.7</td>
 <td style="text-align: center;"><strong>63.0</strong></td>
+</tr>
+</tbody>
+</table>
+
+____
+## Three fold:
+Based on [DRML](http://openaccess.thecvf.com/content_cvpr_2016/papers/Zhao_Deep_Region_and_CVPR_2016_paper.pdf) paper, we use their exact subject-exclusive three fold testing (These subjects are exclusively for testing on each fold, the remaining subjects are for train/val):
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;"><strong>Fold</strong></th>
+<th style="text-align: center;"><strong><em>Subjects</em></strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;"><p><strong>1</strong></p></td>
+<td style="text-align: center;">['F001', 'F002', 'F008', 'F009', 'F010', 'F016', 'F018', 'F023', 'M001', 'M004', 'M007', 'M008', 'M012', 'M014']</td>
+</tr>
+</tbody>
+<tr class="odd">
+<td style="text-align: right;"><p><strong>2</strong></p></td>
+<td style="text-align: center;">['F003', 'F005', 'F011', 'F013', 'F020', 'F022', 'M002', 'M005', 'M010', 'M011', 'M013', 'M016', 'M017', 'M018']</td>
+</tr>
+</tbody>
+<tr class="odd">
+<td style="text-align: right;"><p><strong>3</strong></p></td>
+<td style="text-align: center;">['F004', 'F006', 'F007', 'F012', 'F014', 'F015', 'F017', 'F019', 'F021', 'M003', 'M006', 'M009', 'M015']</td>
 </tr>
 </tbody>
 </table>
