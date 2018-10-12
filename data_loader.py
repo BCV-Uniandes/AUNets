@@ -11,7 +11,7 @@ import numpy as np
 import imageio
 import scipy.misc
 import tqdm
-
+import glob
 
 class BP4D(Dataset):
   def __init__(self, image_size, metadata_path, transform, mode, shuffling = False, OF = False, verbose=False):
@@ -23,7 +23,7 @@ class BP4D(Dataset):
     self.OF = OF
     self.verbose = verbose
     self.meta = '/home/afromero/datos/Databases/BP4D/'
-    self.metaSSD = '/home/afromero/datos/Databases/BP4D/'#'/home/afromero/ssd2'
+    self.metaSSD = '/home/afromero/ssd2'
     # self.metaSSD = '../BP4D'
     if mode=='sample': mode='train'
     file_txt = os.path.join(metadata_path, mode+'.txt')
@@ -59,7 +59,6 @@ class BP4D(Dataset):
     # ipdb.set_trace()
 
   def __getitem__(self, index):
-    # img_file = os.path.join(self.meta, self.filenames[index])
     img_file = os.path.join(self.metaSSD, self.filenames[index])
     if not os.path.isfile(img_file): 
       print('%s not found'%(img_file))
@@ -67,45 +66,65 @@ class BP4D(Dataset):
       imageio.imwrite(img_file, np.zeros((self.image_size, self.image_size,3)).astype(np.uint8))    
     image = Image.open(img_file)
     label = self.labels[index]
-    # ipdb.set_trace()
     return self.transform(image), torch.FloatTensor(label), self.filenames[index]
 
   def __len__(self):
     return self.num_data
 
+class DEMO(Dataset):
+  def __init__(self, path, transform, OF=False):
+    # ipdb.set_trace()
+    self.transform = transform
+    if OF and os.path.isfile(path): raise TypeError("Cannot perform DEMO with Optical Flow for one single image. Please supply a directory with more than one image")
+
+    if OF: 
+      of_path = path+'_OF'
+       
+    if os.path.isfile(path):
+      self.filenames = [path]
+
+    elif os.path.isdir(path):
+      self.filenames = glob.glob(path+'/*')
+
+      if OF and len(glob.glob(of_path+'/*'))<=1: raise TypeError("Cannot perform DEMO with Optical Flow for one single image. Please supply a directory with more than one image")
+      elif OF and not os.path.isdir(of_path): 
+        os.makedirs(of_path)
+        os.system('./generate_data/OF/broxDir --source {} --ziel {}'.format(path, of_path))
+      if OF: 
+        of_filenames = glob.glob(of_path+'/*')
+        assert len(self.filenames)==len(of_filenames), "RGB and OF images must be the same"
+        self.filenames = of_filenames
+    self.filenames = sorted(self.filenames)
+    self.num_data = len(self.filenames)
+
+  def __getitem__(self, index):
+    image = Image.open(self.filenames[index])
+    return self.transform(image), torch.FloatTensor([0]), self.filenames[index]
+
+  def __len__(self):
+    return self.num_data
+
 def get_loader(metadata_path, crop_size, image_size, batch_size, \
-        mode='train', imagenet=False, OF=False, num_workers=0, verbose=False):
+        mode='train', imagenet=False, OF=False, num_workers=0, verbose=False, demo=''):
   """Build and return data loader."""
   
   #ImageNet normalization
-  # ipdb.set_trace()
   if imagenet:
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
   else:
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[1.0, 1.0, 1.0])
-    # normalize = transforms.Normalize(mean=[0.406, 0.456, 0.485], std=[1.0, 1.0, 1.0])
-    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
-  if mode == 'train' or mode=='sample':
-    transform = transforms.Compose([
-      # transforms.CenterCrop(crop_size),
-      transforms.Resize((image_size, image_size), interpolation=Image.ANTIALIAS),   
-      transforms.ToTensor(),
-      normalize,
-      # transforms.Normalize(mean, std),
-      ])  
-
-
-  else:
-    transform = transforms.Compose([
-      # transforms.CenterCrop(crop_size),
+  transform = transforms.Compose([
       transforms.Resize((image_size, image_size), interpolation=Image.ANTIALIAS),
-      # transforms.Scale(image_size, interpolation=Image.ANTIALIAS),
       transforms.ToTensor(),
-      # transforms.Normalize(mean, std),
       normalize,
       ])
-  dataset = BP4D(image_size, metadata_path, transform, mode, \
+
+  if demo:
+    batch_size = 1
+    dataset = DEMO(demo, transform, OF=OF)
+  else:
+    dataset = BP4D(image_size, metadata_path, transform, mode, \
               shuffling=mode=='train' or mode=='sample', OF=OF, verbose=verbose)
 
   data_loader = DataLoader(dataset=dataset,

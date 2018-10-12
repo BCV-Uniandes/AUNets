@@ -38,6 +38,7 @@ class Solver(object):
     self.HYDRA = config.HYDRA
 
     # Training settings
+    self.mode = config.mode
     self.image_size = config.image_size
     self.lr = config.lr
     self.beta1 = config.beta1
@@ -76,14 +77,14 @@ class Solver(object):
     self.string_='00'
     self.TRAINED_FILE = os.path.join(self.model_save_path, 'TRAINED')
 
-    if self.pretrained_model and not self.SHOW_MODEL:
+    if self.pretrained_model and not self.SHOW_MODEL and not self.DEMO and self.mode=='train':
 
       txt_file = glob.glob(os.path.join(self.model_save_path, '*.txt'))
       if txt_file and not self.TEST_PTH:
         self.TEST_TXT = True
         os.system('touch {}'.format(self.TRAINED_FILE))
 
-      if os.path.isfile(self.TRAINED_FILE) :
+      if os.path.isfile(self.TRAINED_FILE):
         print("!!!Model already trained")
         self.DONE=True
 
@@ -152,8 +153,8 @@ class Solver(object):
     self.C = Classifier(pretrained=self.finetuning, OF_option=self.OF_option, model_save_path=self.model_save_path) 
 
     trainable_params, name_params = self.get_trainable_params()
-
-    print("==============\nTrainable layers:\n{}\n==============".format(str(name_params)))
+    if self.mode=='train' and not self.DEMO:
+      print("==============\nTrainable layers:\n{}\n==============".format(str(name_params)))
     # Optimizer
     # self.optimizer = torch.optim.Adam(self.C.parameters(), self.lr, [self.beta1, self.beta2])
     self.optimizer = torch.optim.Adam(trainable_params, self.lr, [self.beta1, self.beta2])
@@ -161,7 +162,8 @@ class Solver(object):
     # Loss
     self.LOSS = nn.BCEWithLogitsLoss()
     # Print network
-    self.print_network(self.C, 'Classifier - OF: '+self.OF_option)
+    if self.mode=='train' and not self.DEMO:
+      self.print_network(self.C, 'Classifier - OF: '+self.OF_option)
     
     if torch.cuda.is_available():
       self.C.cuda()
@@ -470,3 +472,23 @@ class Solver(object):
       img_file = 'show/%s.jpg'%(str(i).zfill(4))
       save_image(self.denorm(rgb_img[:min_size]), img_file, nrow=8)
       if i==25: break
+
+
+  def DEMO(self):
+    self.C.eval()
+    if self.OF: of_loader = iter(self.of_loader)
+    string = "AU{} - OF {} | Forward".format(str(self.AU).zfill(2), str(self.OF_option))
+    for real_rgb, _, file_ in self.rgb_loader:
+
+      real_rgb = self.to_var(real_rgb, volatile=True)
+
+      if self.OF: 
+        real_of = of_loader.next()[0]
+        real_of = self.to_var(real_of, volatile=True)
+        out_temp = self.C(real_rgb, OF=real_of)
+      else:
+        out_temp = self.C(real_rgb)        
+
+      output = F.sigmoid(out_temp)
+      output = output.data.cpu().numpy().flatten().tolist()
+      print('{} | {} : {}'.format(string, file_[0], output[0]))

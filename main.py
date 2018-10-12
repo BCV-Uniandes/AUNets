@@ -27,13 +27,13 @@ def main(config):
   of_loader = None
 
   img_size = config.image_size
-
+  # ipdb.set_trace()
   rgb_loader = get_loader(config.metadata_path, img_size, img_size, config.batch_size, 
-                    config.mode, num_workers=config.num_workers, OF=False, \
+                    config.mode, demo=config.DEMO, num_workers=config.num_workers, OF=False, \
                    verbose=True, imagenet=config.finetuning=='imagenet')   
 
   if config.OF: of_loader = get_loader(config.metadata_path, img_size,
-                   img_size, config.batch_size, config.mode, num_workers=config.num_workers, OF=True, \
+                   img_size, config.batch_size, config.mode, demo=config.DEMO, num_workers=config.num_workers, OF=True, \
                    verbose=True, imagenet=config.finetuning=='imagenet')
 
   # Solver
@@ -42,6 +42,10 @@ def main(config):
 
   if config.SHOW_MODEL: 
     solver.display_net()
+    return
+
+  if config.DEMO:
+    solver.DEMO()    
     return
 
   if config.mode == 'train':
@@ -99,6 +103,9 @@ if __name__ == '__main__':
   parser.add_argument('--AU', type=str, default='1')
   parser.add_argument('--finetuning', type=str, default='emotionnet', choices=['emotionnet', 'imagenet', 'random'])  
   parser.add_argument('--pretrained_model', type=str, default='')   
+
+  #DEMO
+  parser.add_argument('--DEMO', type=str, default='')   
 
   # Step size
   parser.add_argument('--log_step', type=int, default=2000)# tensorboard update

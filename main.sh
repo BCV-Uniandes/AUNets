@@ -8,6 +8,10 @@ case $key in
     mode="$2"
     shift # past argument
     ;;       
+    -DEMO|--DEMO)
+    DEMO="$2"
+    shift # past argument
+    ;;           
     -AU|-au|--AU|--au)
     declare -a AU=( "$2" )
     shift # past argument
@@ -55,6 +59,7 @@ done
 
 if [ -z ${OF+x} ]; then OF="None"; fi
 if [ -z ${mode_data+x} ]; then mode_data="normal"; fi
+if [ -z ${DEMO+x} ]; then DEMO=""; fi
 if [ -z ${AU+x} ]; then declare -a AU=(1 2 4 6 7 10 12 14 15 17 23 24); fi
 if [ -z ${finetuning+x} ]; then declare -a finetuning=("emotionnet"); fi
 if [ -z ${fold+x} ]; then declare -a fold=( 0 1 2 ); fi
@@ -89,7 +94,7 @@ do
   do
     for au in "${AU[@]}"
     do
-      command_train="./main.py -- --AU=$au --fold=$_fold --GPU=$gpu_id --OF $OF \
+      command_train="./main.py -- --AU=$au --fold=$_fold --GPU=$gpu_id --OF $OF --DEMO $DEMO \
                     --batch_size=$batch_size --finetuning=$enc --mode_data=$mode_data"
       if [ "$HYDRA" = true ]; then command_train+=" --HYDRA"; fi  
       if [ "$DELETE" = true ]; then command_train+=" --DELETE"; fi  

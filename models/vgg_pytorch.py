@@ -386,13 +386,13 @@ def vgg16(pretrained='', OF_option='None', model_save_path='', **kwargs):
   elif pretrained=='emotionnet' and OF_option=='None':
     emo_file = sorted(glob.glob('/home/afromero/datos2/EmoNet/snapshot/models/EmotionNet/normal/fold_all/Imagenet/*.pth'))[-1]
     model_zoo_ = torch.load(emo_file)
-    print("Finetuning from: "+emo_file)
+    # print("Finetuning from: "+emo_file)
     model_zoo_={k.replace('model.',''): v for k,v in model_zoo_.iteritems()}
 
   elif pretrained=='emotionnet' and OF_option!='None':
     au_rgb_file = sorted(glob.glob(model_save_path.replace(OF_option,'None')+'/*.pth'))[-1]
     model_zoo_ = torch.load(au_rgb_file)
-    print("Finetuning from: "+os.path.abspath(au_rgb_file))
+    # print("Finetuning from: "+os.path.abspath(au_rgb_file))
     model_zoo_={k.replace('model.',''): v for k,v in model_zoo_.iteritems()}
 
 
