@@ -1,0 +1,26 @@
+kind: pipeline
+name: default
+
+clone:
+  disable: true
+
+steps:
+- name: clone
+  image: docker:git
+  commands:
+  - pwd
+  - git clone $DRONE_GIT_HTTP_URL
+  - cd $DRONE_REPO_NAME
+  -   git config --global user.email "bcv@uniandes.edu.co"
+  - git config --global user.name "BCV CI Server"
+  - git fetch $FLAGS origin +refs/heads/$DRONE_COMMIT_BRANCH
+  - git checkout $DRONE_COMMIT_BRANCH
+  - git fetch origin $DRONE_COMMIT_REF
+  - git rebase $DRONE_COMMIT_SHA
+
+- name: style
+  image: continuumio/miniconda3:latest
+  commands:
+  - pip install pydocstyle
+  - conda install mccabe flake8 pycodestyle
+  - flake8 --ignore=E731,W504 --max-complexity 15 .
