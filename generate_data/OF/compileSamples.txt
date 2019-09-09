@@ -1,0 +1,1 @@
+g++ broxOpticalFlowFullDir.cpp -o broxDirGPU0 `pkg-config --cflags --libs /.../opencv-2.4.13/release/unix-install/opencv.pc`
