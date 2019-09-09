@@ -9,3 +9,5 @@ caffe_results/
 caffe2npy*
 screen*
 show/
+*~
+*github*

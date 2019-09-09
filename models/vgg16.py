@@ -11,25 +11,28 @@ import pickle
 import sys
 import config as cfg
 import torch.nn as nn
-import torch.legacy.nn as nn_legacy
+#import torch.legacy.nn as nn_legacy
 from torch.autograd import Variable
 import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from vgg_pytorch import vgg16 as model_vgg16
+from models.vgg_pytorch import vgg16 as model_vgg16
 
 class Classifier(nn.Module):
 
-  def __init__(self, pretrained='/npy/weights', OF_option='None', model_save_path=''):
+  def __init__(self, pretrained='/npy/weights', OF_option='None', model_save_path='', test_model=''):
 
     super(Classifier, self).__init__()
     self.finetuning = pretrained
     self.OF_option = OF_option
     self.model_save_path = model_save_path
 
-    self._initialize_weights()
+    if test_model=='':
+      self._initialize_weights()
+    else:
+      self.model = model_vgg16(OF_option=self.OF_option, model_save_path=self.model_save_path, num_classes=22)
 
   def _initialize_weights(self):
 

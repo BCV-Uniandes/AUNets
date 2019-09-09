@@ -150,7 +150,7 @@ class Solver(object):
     # Define a generator and a discriminator
     if self.TEST_TXT: return
     from models.vgg16 import Classifier
-    self.C = Classifier(pretrained=self.finetuning, OF_option=self.OF_option, model_save_path=self.model_save_path) 
+    self.C = Classifier(pretrained=self.finetuning, OF_option=self.OF_option, model_save_path=self.model_save_path, test_model=self.pretrained_model) 
 
     trainable_params, name_params = self.get_trainable_params()
     if self.mode=='train' and not self.DEMO:
@@ -189,8 +189,11 @@ class Solver(object):
   #=======================================================================================#
   #=======================================================================================#
   def load_pretrained_model(self):
-    model = os.path.join(
-      self.model_save_path, '{}.pth'.format(self.pretrained_model))
+    if self.pretrained_model == '':
+      model = os.path.join(
+        self.model_save_path, '{}.pth'.format(self.pretrained_model))
+    else:
+      model = self.pretrained_model
     self.C.load_state_dict(torch.load(model))
     print(' [!!] loaded trained model: {}!'.format(model))
 

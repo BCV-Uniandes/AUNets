@@ -68,19 +68,10 @@ def update_config(config):
 
   if config.pretrained_model=='':
     try:
-      # ipdb.set_trace()
       config.pretrained_model = sorted(glob.glob(os.path.join(config.model_save_path, '*.pth')))[-1]
       config.pretrained_model = os.path.basename(config.pretrained_model).split('.')[0]
     except:
       pass
-
-  if config.test_model=='':
-    try:
-      # ipdb.set_trace()
-      config.test_model = sorted(glob.glob(os.path.join(config.model_save_path, '*.pth')))[-1]
-      config.test_model = os.path.basename(config.test_model).split('.')[0]
-    except:
-      config.test_model = ''  
 
   if not os.path.exists(os.path.dirname(config.xlsfile)):
     os.makedirs(os.path.dirname(config.xlsfile))
