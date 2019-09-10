@@ -23,7 +23,7 @@ class Classifier(nn.Module):
             self.model = model_vgg16(
                 OF_option=self.OF_option,
                 model_save_path=self.model_save_path,
-                num_classes=22)
+                num_classes=1)
 
     def _initialize_weights(self):
 
