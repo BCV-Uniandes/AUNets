@@ -1,10 +1,6 @@
 # AUNets
 This repo provides a PyTorch implementation for AUNets. AUNets relies on the power of having independent and binaries CNNs for each facial expression. It works with the hollistical facial image *i.e.*, no keypoints or facial aligment needed. 
 
-Paper: A. Romero, J. Leon, P. Arbelaez. Multi-View Dynamic Facial Action Unit Detection. 
-To appear in the Journal of Image and Vision Computing.
-Pre-print: https://arxiv.org/pdf/1704.07863.pdf
-
 Project page: https://biomedicalcomputervision.uniandes.edu.co/index.php/research?id=30
 
 ## Usage (TRAIN)
@@ -131,3 +127,14 @@ Based on [DRML](http://openaccess.thecvf.com/content_cvpr_2016/papers/Zhao_Deep_
 </tr>
 </tbody>
 </table>
+
+## Citation
+```
+@article{romero2018multi,
+  title={Multi-view dynamic facial action unit detection},
+  author={Romero, Andr{\'e}s and Le{\'o}n, Juan and Arbel{\'a}ez, Pablo},
+  journal={Image and Vision Computing},
+  year={2018},
+  publisher={Elsevier}
+}
+```
