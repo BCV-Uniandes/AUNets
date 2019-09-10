@@ -3,6 +3,17 @@ This repo provides a PyTorch implementation for AUNets. AUNets relies on the pow
 
 Project page: https://biomedicalcomputervision.uniandes.edu.co/index.php/research?id=30
 
+## Citation
+```
+@article{romero2018multi,
+  title={Multi-view dynamic facial action unit detection},
+  author={Romero, Andr{\'e}s and Le{\'o}n, Juan and Arbel{\'a}ez, Pablo},
+  journal={Image and Vision Computing},
+  year={2018},
+  publisher={Elsevier}
+}
+```
+
 ## Usage (TRAIN)
 ```bash
 $./main.sh -GPU 0 -OF None #It will train AUNets (12 models and 3 folds) from emotionnet weights.
@@ -127,14 +138,3 @@ Based on [DRML](http://openaccess.thecvf.com/content_cvpr_2016/papers/Zhao_Deep_
 </tr>
 </tbody>
 </table>
-
-## Citation
-```
-@article{romero2018multi,
-  title={Multi-view dynamic facial action unit detection},
-  author={Romero, Andr{\'e}s and Le{\'o}n, Juan and Arbel{\'a}ez, Pablo},
-  journal={Image and Vision Computing},
-  year={2018},
-  publisher={Elsevier}
-}
-```
