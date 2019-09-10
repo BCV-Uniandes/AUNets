@@ -1,0 +1,9 @@
+trigger:
+- master
+
+pool:
+  name: 'default'
+steps:
+- script: |
+    flake8 --ignore=E731,W504 --max-complexity 15 .
+  displayName: 'flake8 linting'
