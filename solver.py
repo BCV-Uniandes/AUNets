@@ -137,19 +137,19 @@ class Solver(object):
                 param for name, param in nn.Module.named_parameters(self.C)
                 if 'rgb' not in name
             ]
-            name_params = sorted([
+            _name = [
                 name for name, param in nn.Module.named_parameters(self.C)
                 if 'rgb' not in name
-            ],
-                                 reverse=True)
+            ]
+            name_params = sorted(_name, reverse=True)
 
         if self.HYDRA:
             trainable_params = self.C.model.classifier.parameters()
-            name_params = sorted([
+            _name = [
                 name for name, param in nn.Module.named_parameters(self.C)
                 if 'features' not in name
-            ],
-                                 reverse=True)
+            ]
+            name_params = sorted(_name, reverse=True)
 
         return trainable_params, name_params
 
