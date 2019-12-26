@@ -94,7 +94,7 @@ do
   do
     for au in "${AU[@]}"
     do
-      command_train="./main.py -- --AU=$au --fold=$_fold --GPU=$gpu_id --OF $OF --DEMO $DEMO \
+      command_train="python3 main.py --AU=$au --fold=$_fold --GPU=$gpu_id --OF $OF --DEMO $DEMO \
                     --batch_size=$batch_size --finetuning=$enc --mode_data=$mode_data"
       if [ "$HYDRA" = true ]; then command_train+=" --HYDRA"; fi  
       if [ "$DELETE" = true ]; then command_train+=" --DELETE"; fi  
