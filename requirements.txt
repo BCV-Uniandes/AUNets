@@ -14,7 +14,7 @@ ipdb==0.10.1
 pytorchviz==0.0.1
 Wand==0.4.4
 matplotlib==1.5.1
-Pillow==5.1.0
+Pillow==8.1.1
 matlab==0.1
 ops==0.4.7
 skimage==0.0
